@@ -1,0 +1,11 @@
+<svg viewBox="0 0 300 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="300" height="240" rx="16" fill="#FFFBEB"/>
+  <rect x="50" y="45" width="200" height="145" rx="12" fill="#FFFFFF" stroke="#D97706" stroke-width="2"/>
+  <rect x="50" y="45" width="200" height="35" rx="12" fill="#D97706"/>
+  <circle cx="75" cy="62" r="10" fill="#FDE68A"/>
+  <text x="70" y="66" font-family="Cairo, sans-serif" font-weight="700" font-size="12" fill="#78350F">فوار</text>
+  <text x="95" y="67" font-family="Cairo, sans-serif" font-weight="700" font-size="14" fill="#FFFFFF">إيجيبتوكالم فوار</text>
+  <rect x="70" y="100" width="160" height="20" rx="4" fill="#FEF3C7"/>
+  <text x="80" y="114" font-family="Inter, sans-serif" font-weight="600" font-size="11" fill="#B45309">EgyptoCalm 2.1g</text>
+  <text x="70" y="150" font-family="Cairo, sans-serif" font-weight="600" font-size="12" fill="#64748B">10 أكياس فوارة سريعة</text>
+</svg>
