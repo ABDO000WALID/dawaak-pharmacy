@@ -7,11 +7,12 @@ import {
   CatalogRepository,
   ProductFilterOptions,
   PaginatedProductsResult,
+  wordTrigramSimilarity,
 } from '@/lib/repositories';
 
 // Egyptian dialect colloquial symptom dictionary mapping
 const DIALECT_MAP: Record<string, string[]> = {
-  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast'],
+  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast', 'citra-cold-sinus'],
   'سخونية': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'syntraphol-nile-generic-500', 'kids-relief-fever-syrup'],
   'حرارة': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
   'مغص': ['egyptocalm-effervescent', 'gastroshield-m-20', 'ombrasynth-local-20', 'ombrasynth-colon-care', 'pediasynth-colic-drops'],
@@ -23,25 +24,25 @@ const DIALECT_MAP: Record<string, string[]> = {
   'أعصاب': ['neurorelief-z-50'],
   'فيتامين': ['vitaboost-max-daily', 'calci-synth-d3', 'zincosynth-c', 'ferro-synth-iron'],
   'فيتامينات': ['vitaboost-max-daily', 'sleepeasy-synth-night', 'calci-synth-d3', 'zincosynth-c'],
-  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo', 'pressuresynth-monitor'],
-  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500', 'glucosynth-test-strips'],
+  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo'],
+  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500'],
   'مفاصل': ['osteojoint-synth-extra', 'relaxogen-forte-relaxant'],
   'عضلات': ['relaxogen-forte-relaxant'],
   'ركبة': ['osteojoint-synth-extra'],
   'خشونة': ['osteojoint-synth-extra'],
-  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel', 'safe-band-dressings'],
+  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel'],
   'حروق': ['dermoheal-plus-gel'],
   'مطهر': ['septoderm-antiseptic-spray'],
   'عين': ['ocuclear-s-eye-drops'],
   'عيني': ['ocuclear-s-eye-drops'],
-  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel', 'healthy-care-sensitive-cream'],
+  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel'],
   'نوم': ['sleepeasy-synth-night'],
   'أرق': ['sleepeasy-synth-night'],
   'أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'teething-care-gel', 'pediasynth-colic-drops', 'baby-rehydra-sachets'],
-  'بشرة': ['healthy-care-sensitive-cream', 'acne-synth-lotion', 'dermoheal-plus-gel'],
-  'حب شباب': ['acne-synth-lotion'],
+  'بشرة': ['dermoheal-plus-gel'],
+  'حب شباب': ['dermoheal-plus-gel'],
   'تسنين': ['teething-care-gel'],
-  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'thermosynth-digital-thermometer'],
+  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
 };
 
 export { DIALECT_MAP };
@@ -126,12 +127,17 @@ export class ProductService {
         }
       }
 
-      result = result.filter(p => {
-        if (dialectMatchSlugs.includes(p.slug)) return true;
+      const scored = result.map(p => {
+        let score = 0;
+        const isDialectMatch = dialectMatchSlugs.includes(p.slug);
+        if (isDialectMatch) score += 0.85;
 
         const normNameAr = normalizeArabic(p.nameAr);
         const normActiveAr = normalizeArabic(p.activeIngredientAr);
         const normDescAr = normalizeArabic(p.descriptionAr);
+        const nameEn = p.nameEn.toLowerCase();
+        const activeEn = p.activeIngredientEn.toLowerCase();
+        const descEn = p.descriptionEn.toLowerCase();
 
         const arTokens = normQ.split(/\s+/).filter(t => t.length >= 3);
         const enTokens = rawQ.split(/\s+/).filter(t => t.length >= 3);
@@ -144,14 +150,33 @@ export class ProductService {
         );
 
         const matchesEnglish = rawQ.length > 0 && (
-          p.nameEn.toLowerCase().includes(rawQ) ||
-          p.activeIngredientEn.toLowerCase().includes(rawQ) ||
-          p.descriptionEn.toLowerCase().includes(rawQ) ||
-          (enTokens.length > 1 && enTokens.some(t => p.nameEn.toLowerCase().includes(t) || p.activeIngredientEn.toLowerCase().includes(t)))
+          nameEn.includes(rawQ) ||
+          activeEn.includes(rawQ) ||
+          descEn.includes(rawQ) ||
+          (enTokens.length > 1 && enTokens.some(t => nameEn.includes(t) || activeEn.includes(t)))
         );
 
-        return matchesArabic || matchesEnglish;
+        if (matchesArabic) score += 0.9;
+        if (matchesEnglish) score += 0.9;
+
+        // Trigram fuzzy similarity (tolerance for typos matching pg_trgm word_similarity)
+        const simNameAr = wordTrigramSimilarity(normQ, normNameAr);
+        const simActiveAr = wordTrigramSimilarity(normQ, normActiveAr);
+        const simNameEn = wordTrigramSimilarity(rawQ, nameEn);
+        const simActiveEn = wordTrigramSimilarity(rawQ, activeEn);
+
+        const bestSim = Math.max(simNameAr, simActiveAr, simNameEn, simActiveEn);
+        if (bestSim >= 0.25) {
+          score += bestSim * 0.75;
+        }
+
+        return { product: p, score, matched: isDialectMatch || matchesArabic || matchesEnglish || bestSim >= 0.25 };
       });
+
+      result = scored
+        .filter(item => item.matched && item.score > 0.2)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.product);
     }
 
     if (options?.sort) {

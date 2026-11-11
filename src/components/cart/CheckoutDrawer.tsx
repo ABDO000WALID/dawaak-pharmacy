@@ -124,8 +124,8 @@ export function CheckoutDrawer({ isOpen, onClose }: CheckoutDrawerProps) {
       onClose={isSuccess ? handleFinish : onClose}
       title={
         isSuccess
-          ? (locale === 'ar' ? 'تم تأكيد طلبك بنجاح! 🎉' : 'Order Placed Successfully!')
-          : (locale === 'ar' ? 'إتمام الطلب وتحديد التوصيل 🚚' : 'Checkout & Delivery')
+          ? (locale === 'ar' ? 'تم تأكيد طلبك بنجاح!' : 'Order Placed Successfully!')
+          : (locale === 'ar' ? 'إتمام الطلب وتحديد التوصيل' : 'Checkout & Delivery')
       }
       maxWidth="lg"
     >
@@ -136,7 +136,7 @@ export function CheckoutDrawer({ isOpen, onClose }: CheckoutDrawerProps) {
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 font-cairo">
-              {locale === 'ar' ? 'تم تأكيد طلبك بنجاح! 🎉' : 'Order Placed Successfully! 🎉'}
+              {locale === 'ar' ? 'تم تأكيد طلبك بنجاح!' : 'Order Placed Successfully!'}
             </h3>
             <p className="text-xs text-slate-500">
               {locale === 'ar'
@@ -189,8 +189,8 @@ export function CheckoutDrawer({ isOpen, onClose }: CheckoutDrawerProps) {
                 <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
                 <span>
                   {locale === 'ar'
-                    ? '⚠️ يحتوي طلبك على أدوية روشتة طبية. سيتصل بك الصيدلي هاتفياً للتحقق قبل إرسال المندوب.'
-                    : '⚠️ Contains prescription items. Pharmacist verification call required before dispatch.'}
+                    ? 'يحتوي طلبك على أدوية روشتة طبية. سيتصل بك الصيدلي هاتفياً للتحقق قبل إرسال المندوب.'
+                    : 'Contains prescription items. Pharmacist verification call required before dispatch.'}
                 </span>
               </div>
             )}
@@ -250,7 +250,7 @@ export function CheckoutDrawer({ isOpen, onClose }: CheckoutDrawerProps) {
               <span>{locale === 'ar' ? 'مصاريف التوصيل:' : 'Delivery Fee:'}</span>
               <span className="font-bold text-slate-700 dark:text-slate-300">
                 {orderSnapshot.deliveryFee === 0
-                  ? (locale === 'ar' ? 'مجاني 🚚' : 'Free 🚚')
+                  ? (locale === 'ar' ? 'مجاني' : 'Free')
                   : formatEGP(orderSnapshot.deliveryFee, locale)}
               </span>
             </div>

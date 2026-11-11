@@ -97,6 +97,7 @@ export function BottomNav() {
             return (
               <Link
                 key={item.id}
+                id={item.id === 'cart' ? 'bottom-nav-cart-icon' : undefined}
                 href={item.href!}
                 className={`flex flex-col items-center justify-center gap-1 w-full h-full transition active:scale-95 relative ${
                   item.isActive

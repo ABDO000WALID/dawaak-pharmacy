@@ -54,7 +54,7 @@ export function PrescriptionUploadModal({ isOpen, onClose }: PrescriptionUploadM
       onClose={handleClose}
       title={
         locale === 'ar'
-          ? 'صرف الروشتة الطبية أونلاين 📋'
+          ? 'صرف الروشتة الطبية أونلاين'
           : 'Prescription Dispensing Portal'
       }
       maxWidth="md"

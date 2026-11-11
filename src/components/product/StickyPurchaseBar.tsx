@@ -12,7 +12,7 @@ interface StickyPurchaseBarProps {
   quantity: number;
   onIncrement: () => void;
   onDecrement: () => void;
-  onAddToCart: () => void;
+  onAddToCart: (e?: React.MouseEvent) => void;
   isAdded: boolean;
 }
 

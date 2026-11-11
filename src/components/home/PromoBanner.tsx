@@ -22,8 +22,8 @@ export function PromoBanner() {
 
           <h3 className="text-lg sm:text-2xl font-black font-cairo">
             {locale === 'ar'
-              ? 'وفّر 20% على باقة المناعة والنشاط اليومي 🍊'
-              : 'Save 20% on Immunity & Vitality Packs 🍊'}
+              ? 'وفّر 20% على باقة المناعة والنشاط اليومي'
+              : 'Save 20% on Immunity & Vitality Packs'}
           </h3>
 
           <p className="text-xs sm:text-sm text-amber-50">

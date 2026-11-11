@@ -124,7 +124,7 @@ export default function CartPage() {
             <Truck className="w-4 h-4 text-teal-700 dark:text-teal-400" />
             <span>
               {amountToFreeShipping === 0
-                ? (locale === 'ar' ? 'مبروك! طلبك مؤهل للشحن المجاني 🚚🎉' : 'Congratulations! Free delivery unlocked 🚚🎉')
+                ? (locale === 'ar' ? 'مبروك! طلبك مؤهل للشحن المجاني' : 'Congratulations! Free delivery unlocked')
                 : (locale === 'ar'
                   ? `أضف بـ ${formatEGP(amountToFreeShipping, locale)} للحصول على توصيل مجاني!`
                   : `Add ${formatEGP(amountToFreeShipping, locale)} more for FREE shipping!`)}
@@ -263,7 +263,7 @@ export default function CartPage() {
                 <span>{locale === 'ar' ? 'مصاريف التوصيل للمنزل:' : 'Delivery Fee:'}</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">
                   {deliveryFee === 0 ? (
-                    <span className="text-emerald-600 font-black">{locale === 'ar' ? 'مجاني 🚚' : 'Free 🚚'}</span>
+                    <span className="text-emerald-600 font-black">{locale === 'ar' ? 'مجاني' : 'Free'}</span>
                   ) : (
                     formatEGP(deliveryFee, locale)
                   )}
@@ -295,7 +295,7 @@ export default function CartPage() {
               className="w-full py-2.5 px-4 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 font-bold text-xs transition flex items-center justify-center gap-2 font-cairo"
             >
               <Calendar className="w-4 h-4 text-teal-600" />
-              <span>{locale === 'ar' ? 'عرض جدول مواعيد الدواء الذكي 📅' : 'Smart Dosage Schedule Preview'}</span>
+              <span>{locale === 'ar' ? 'عرض جدول مواعيد الدواء الذكي' : 'Smart Dosage Schedule Preview'}</span>
             </button>
           </div>
 

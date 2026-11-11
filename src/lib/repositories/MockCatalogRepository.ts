@@ -72,7 +72,7 @@ export function wordTrigramSimilarity(needle: string, haystack: string): number 
  * All keys must have length >= 2 to strictly prevent single-character blast radius.
  */
 export const DIALECT_MAP: Record<string, string[]> = {
-  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast'],
+  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast', 'citra-cold-sinus'],
   'سخونية': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'syntraphol-nile-generic-500', 'kids-relief-fever-syrup'],
   'حرارة': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
   'مغص': ['egyptocalm-effervescent', 'gastroshield-m-20', 'ombrasynth-local-20', 'ombrasynth-colon-care', 'pediasynth-colic-drops'],
@@ -84,25 +84,25 @@ export const DIALECT_MAP: Record<string, string[]> = {
   'أعصاب': ['neurorelief-z-50'],
   'فيتامين': ['vitaboost-max-daily', 'calci-synth-d3', 'zincosynth-c', 'ferro-synth-iron'],
   'فيتامينات': ['vitaboost-max-daily', 'sleepeasy-synth-night', 'calci-synth-d3', 'zincosynth-c'],
-  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo', 'pressuresynth-monitor'],
-  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500', 'glucosynth-test-strips'],
+  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo'],
+  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500'],
   'مفاصل': ['osteojoint-synth-extra', 'relaxogen-forte-relaxant'],
   'عضلات': ['relaxogen-forte-relaxant'],
   'ركبة': ['osteojoint-synth-extra'],
   'خشونة': ['osteojoint-synth-extra'],
-  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel', 'safe-band-dressings'],
+  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel'],
   'حروق': ['dermoheal-plus-gel'],
   'مطهر': ['septoderm-antiseptic-spray'],
   'عين': ['ocuclear-s-eye-drops'],
   'عيني': ['ocuclear-s-eye-drops'],
-  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel', 'healthy-care-sensitive-cream'],
+  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel'],
   'نوم': ['sleepeasy-synth-night'],
   'أرق': ['sleepeasy-synth-night'],
   'أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'teething-care-gel', 'pediasynth-colic-drops', 'baby-rehydra-sachets'],
-  'بشرة': ['healthy-care-sensitive-cream', 'acne-synth-lotion', 'dermoheal-plus-gel'],
-  'حب شباب': ['acne-synth-lotion'],
+  'بشرة': ['dermoheal-plus-gel'],
+  'حب شباب': ['dermoheal-plus-gel'],
   'تسنين': ['teething-care-gel'],
-  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'thermosynth-digital-thermometer'],
+  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
 };
 
 export class MockCatalogRepository implements CatalogRepository {
