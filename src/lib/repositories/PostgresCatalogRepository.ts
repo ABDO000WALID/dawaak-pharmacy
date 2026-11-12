@@ -1,5 +1,8 @@
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CatalogRepository, ProductFilterOptions, PaginatedProductsResult } from './types';
 import { SyntheticProduct, Category, CategoryId, DosageForm, TimingBucket } from '@/types/product';
+import { normalizeArabic } from '@/lib/utils/arabic';
+import { DIALECT_MAP } from './MockCatalogRepository';
 
 interface DatabaseProductRow {
   id: string;
@@ -57,9 +60,7 @@ interface DatabaseCategoryRow {
 
 export class PostgresCatalogRepository implements CatalogRepository {
   private static instance: PostgresCatalogRepository;
-  // Supabase client instance (dynamic import)
-  // deno-lint-ignore no-explicit-any
-  private supabaseClient: any = null;
+  private supabaseClient: SupabaseClient | null = null;
 
   public static getInstance(): PostgresCatalogRepository {
     if (!PostgresCatalogRepository.instance) {
@@ -68,7 +69,7 @@ export class PostgresCatalogRepository implements CatalogRepository {
     return PostgresCatalogRepository.instance;
   }
 
-  private async getClient() {
+  private async getClient(): Promise<SupabaseClient> {
     if (!this.supabaseClient) {
       const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
       const key = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -78,15 +79,7 @@ export class PostgresCatalogRepository implements CatalogRepository {
           'Configure them in .env.local or use DATA_SOURCE=mock.'
         );
       }
-      try {
-        // Dynamic import to avoid build-time failure when @supabase/supabase-js is not installed
-        const pkg = '@supabase/supabase-js';
-        const supabaseMod: any = await import(/* webpackIgnore: true */ pkg);
-        this.supabaseClient = supabaseMod.createClient(url, key);
-      } catch (err: unknown) {
-        const error = err as Error;
-        throw new Error(`Failed to initialize Supabase client: ${error?.message || String(err)}`);
-      }
+      this.supabaseClient = createClient(url, key);
     }
     return this.supabaseClient;
   }
@@ -98,16 +91,34 @@ export class PostgresCatalogRepository implements CatalogRepository {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // If search term is present, delegate to pg_trgm fuzzy RPC
+    // If search term is present, delegate to pg_trgm fuzzy RPC with dialect and normalization support
     if (options?.search && options.search.trim().length > 0) {
+      const searchTerm = options.search.trim();
+      const normQuery = normalizeArabic(searchTerm);
+      const rawLower = searchTerm.toLowerCase();
+
+      // Check DIALECT_MAP for colloquial Egyptian symptom terms
+      const dialectSlugs: string[] = [];
+      for (const [symp, slugs] of Object.entries(DIALECT_MAP)) {
+        const normSymp = normalizeArabic(symp);
+        if (
+          (normQuery && (normQuery.includes(normSymp) || (normQuery.length >= 2 && normSymp.includes(normQuery)))) ||
+          (rawLower && (rawLower.includes(symp.toLowerCase()) || (rawLower.length >= 2 && symp.toLowerCase().includes(rawLower))))
+        ) {
+          dialectSlugs.push(...slugs);
+        }
+      }
+
       const { data, count, error } = await client.rpc('search_products_fuzzy', {
-        search_term: options.search.trim(),
+        search_term: searchTerm,
+        similarity_threshold: 0.20,
         filter_category: options.category || null,
         filter_prescription: options.prescription !== undefined ? options.prescription : null,
         min_price: options.minPrice || null,
         max_price: options.maxPrice || null,
         limit_count: pageSize,
         offset_count: from,
+        dialect_slugs: dialectSlugs.length > 0 ? dialectSlugs : null,
       }, { count: 'exact' });
 
       if (error) throw error;
