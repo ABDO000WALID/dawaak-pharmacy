@@ -175,7 +175,14 @@ async function test() {
             p.rating, p.reviews_count, p.substitute_id, p.substitute_savings_egp,
             p.timing_bucket,
             GREATEST(
-                CASE WHEN dialect_slugs IS NOT NULL AND p.slug = ANY(dialect_slugs) THEN 0.85 ELSE 0.0 END,
+                CASE 
+                    WHEN dialect_slugs IS NOT NULL AND p.slug = ANY(dialect_slugs) THEN 
+                        GREATEST(
+                            0.82,
+                            ROUND((0.92 - (array_position(dialect_slugs, p.slug) - 1) * 0.03)::NUMERIC, 3)::FLOAT
+                        )
+                    ELSE 0.0 
+                END,
                 word_similarity(qp.norm_search, normalize_arabic(p.name_ar)),
                 word_similarity(qp.norm_search, normalize_arabic(p.active_ingredient_ar)),
                 similarity(normalize_arabic(p.name_ar), qp.norm_search),

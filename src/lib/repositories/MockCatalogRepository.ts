@@ -157,22 +157,47 @@ export class MockCatalogRepository implements CatalogRepository {
       const rawQ = options.search.trim().toLowerCase();
       const normQ = normalizeArabic(options.search);
 
-      // Check Egyptian dialect symptoms
-      const dialectMatchSlugs: string[] = [];
+      // Check Egyptian dialect symptoms with dynamic multi-factor scoring
+      const dialectScores = new Map<string, number>();
       for (const [symptom, slugs] of Object.entries(DIALECT_MAP)) {
         const normSymptom = normalizeArabic(symptom);
-        if (
+        const isMatch =
           (normQ && (normQ.includes(normSymptom) || (normQ.length >= 2 && normSymptom.includes(normQ)))) ||
-          (rawQ && (rawQ.includes(symptom.toLowerCase()) || (rawQ.length >= 2 && symptom.toLowerCase().includes(rawQ))))
-        ) {
-          dialectMatchSlugs.push(...slugs);
+          (rawQ && (rawQ.includes(symptom.toLowerCase()) || (rawQ.length >= 2 && symptom.toLowerCase().includes(rawQ))));
+
+        if (isMatch) {
+          const listLen = slugs.length || 1;
+          const lenRatio = Math.min(1.0, normSymptom.length / Math.max(1, normQ.length));
+          const trigramSim = wordTrigramSimilarity(normSymptom, normQ);
+          const coverageFactor = Math.max(lenRatio, trigramSim);
+
+          slugs.forEach((slug, rankIdx) => {
+            const priorityFactor = 1 - (rankIdx / (listLen + 1)) * 0.15;
+            const dynamicScore = 0.78 + (0.08 * priorityFactor) + (0.05 * coverageFactor);
+            const prev = dialectScores.get(slug) || 0;
+            if (dynamicScore > prev) {
+              dialectScores.set(slug, dynamicScore);
+            }
+          });
         }
       }
 
       const scored = result.map(p => {
         let score = 0;
-        const isDialectMatch = dialectMatchSlugs.includes(p.slug);
-        if (isDialectMatch) score += 0.85;
+        const baseDialectScore = dialectScores.get(p.slug);
+        const isDialectMatch = baseDialectScore !== undefined;
+        if (isDialectMatch) {
+          let formBonus = 0;
+          const dosageAr = normalizeArabic(p.dosageFormAr || '');
+          const dosageFormLower = (p.dosageForm || '').toLowerCase();
+          if ((normQ.includes('فوار') && (dosageAr.includes('فوار') || p.slug.includes('effervescent') || dosageFormLower.includes('effervescent'))) ||
+              (normQ.includes('شراب') && (dosageAr.includes('شراب') || dosageFormLower.includes('syrup'))) ||
+              (normQ.includes('قطرة') && (dosageAr.includes('قطرة') || dosageFormLower.includes('drop'))) ||
+              (normQ.includes('كبسول') && (dosageAr.includes('كبسول') || dosageFormLower.includes('capsule')))) {
+            formBonus = 0.04;
+          }
+          score += baseDialectScore + formBonus;
+        }
 
         const normNameAr = normalizeArabic(p.nameAr);
         const normActiveAr = normalizeArabic(p.activeIngredientAr);
@@ -184,18 +209,34 @@ export class MockCatalogRepository implements CatalogRepository {
         const arTokens = normQ.split(/\s+/).filter(t => t.length >= 3);
         const enTokens = rawQ.split(/\s+/).filter(t => t.length >= 3);
 
+        const nameWordsAr = normNameAr.split(/\s+/);
+        const activeWordsAr = normActiveAr.split(/\s+/);
+        const allWordsAr = [...nameWordsAr, ...activeWordsAr];
+        const matchedArTokens = arTokens.filter(t => allWordsAr.includes(t));
+        const multiTokenArMatch = arTokens.length > 1 &&
+          matchedArTokens.length >= Math.min(2, arTokens.length) &&
+          matchedArTokens.length >= Math.ceil(arTokens.length * 0.5);
+
+        const nameWordsEn = nameEn.split(/\s+/);
+        const activeWordsEn = activeEn.split(/\s+/);
+        const allWordsEn = [...nameWordsEn, ...activeWordsEn];
+        const matchedEnTokens = enTokens.filter(t => allWordsEn.includes(t));
+        const multiTokenEnMatch = enTokens.length > 1 &&
+          matchedEnTokens.length >= Math.min(2, enTokens.length) &&
+          matchedEnTokens.length >= Math.ceil(enTokens.length * 0.5);
+
         const matchesArabic = normQ.length > 0 && (
           normNameAr.includes(normQ) ||
           normActiveAr.includes(normQ) ||
           normDescAr.includes(normQ) ||
-          (arTokens.length > 1 && arTokens.some(t => normNameAr.includes(t) || normActiveAr.includes(t)))
+          multiTokenArMatch
         );
 
         const matchesEnglish = rawQ.length > 0 && (
           nameEn.includes(rawQ) ||
           activeEn.includes(rawQ) ||
           descEn.includes(rawQ) ||
-          (enTokens.length > 1 && enTokens.some(t => nameEn.includes(t) || activeEn.includes(t)))
+          multiTokenEnMatch
         );
 
         if (matchesArabic) score += 0.9;
@@ -208,11 +249,12 @@ export class MockCatalogRepository implements CatalogRepository {
         const simActiveEn = wordTrigramSimilarity(rawQ, activeEn);
 
         const bestSim = Math.max(simNameAr, simActiveAr, simNameEn, simActiveEn);
-        if (bestSim >= 0.25) {
+        const simThreshold = (arTokens.length >= 3 || enTokens.length >= 3) ? 0.32 : 0.28;
+        if (bestSim >= simThreshold) {
           score += bestSim * 0.75;
         }
 
-        return { product: p, score, matched: isDialectMatch || matchesArabic || matchesEnglish || bestSim >= 0.25 };
+        return { product: p, score, matched: isDialectMatch || matchesArabic || matchesEnglish || bestSim >= simThreshold };
       });
 
       result = scored

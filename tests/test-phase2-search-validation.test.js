@@ -108,6 +108,28 @@ const AUTHORITATIVE_20_CASES = [
   { id: 'TC-ENGL-04', category: 'إنجليزي', query: 'gastroshild', expectedSlug: 'gastroshield-m-20' },
 ];
 
+const EXACT_NAME_CASES = [
+  { id: 'TC-EXACT-01', category: 'اسم صحيح', query: 'سينترافول إكسترا', expectedSlug: 'syntraphol-extra-500' },
+  { id: 'TC-EXACT-02', category: 'اسم صحيح', query: 'فارماكيور-دي إكس', expectedSlug: 'pharmacure-dx-syrup' },
+  { id: 'TC-EXACT-03', category: 'اسم صحيح', query: 'إيجيبتوكالم فوار', expectedSlug: 'egyptocalm-effervescent' },
+  { id: 'TC-EXACT-04', category: 'اسم صحيح', query: 'جاستروشيلد', expectedSlug: 'gastroshield-m-20' },
+  { id: 'TC-EXACT-05', category: 'اسم صحيح', query: 'Syntraphol Extra', expectedSlug: 'syntraphol-extra-500' },
+  { id: 'TC-EXACT-06', category: 'اسم صحيح', query: 'سيبتوديرم مطهر', expectedSlug: 'septoderm-antiseptic-spray' },
+];
+
+const NEGATIVE_SEARCH_CASES = [
+  { id: 'TC-NEG-01', category: 'عشوائي', query: 'zzzzxxxxqqqq' },
+  { id: 'TC-NEG-02', category: 'خضروات', query: 'طماطم وبطاطس وخيار' },
+  { id: 'TC-NEG-03', category: 'سيارات', query: 'قطع غيار سيارات تويوتا' },
+  { id: 'TC-NEG-04', category: 'سياحة', query: 'رحلات شرم الشيخ والغردقة' },
+  { id: 'TC-NEG-05', category: 'أرقام', query: '1234567890987654321' },
+  { id: 'TC-NEG-06', category: 'أجهزة', query: 'تكييف شارب انفرتر' },
+  { id: 'TC-NEG-07', category: 'عقارات', query: 'عقارات وشقق للبيع بالتقسيط' },
+  { id: 'TC-NEG-08', category: 'اقتصاد', query: 'اسعار الذهب والدولار اليوم' },
+  { id: 'TC-NEG-09', category: 'كمبيوتر', query: 'لابتوب ديل مستعمل للبيع' },
+  { id: 'TC-NEG-10', category: 'ملابس', query: 'فستان سهرة حريمي تركي' },
+];
+
 const LATENCY_SCENARIOS = [
   { name: 'Default catalog listing', url: 'http://localhost:3000/api/products' },
   { name: 'Exact Arabic commercial name', url: 'http://localhost:3000/api/products?q=سينترافول' },
@@ -166,7 +188,7 @@ async function run() {
   console.log('  DAWAAK PHARMACY — PHASE 2 CLOSURE SEARCH & LATENCY SUITE      ');
   console.log('================================================================\n');
 
-  console.log('[SUITE 1] 20-Case Search Matrix (5 Categories x 4 Cases)...');
+  console.log('[SUITE 1] 20-Case Search Matrix (5 Categories x 4 Cases, Asserting Top-3)...');
   for (const tc of AUTHORITATIVE_20_CASES) {
     try {
       const repoRes = await repo.getProducts({ search: tc.query, pageSize: 36 });
@@ -174,21 +196,77 @@ async function run() {
       const apiRes = await GET(new Request(`http://localhost:3000/api/products?q=${encodeURIComponent(tc.query)}&pageSize=36`));
       const apiJson = await apiRes.json();
 
-      const repoMatch = repoRes.items.some((p) => p.slug === tc.expectedSlug);
-      const syncMatch = syncRes.some((p) => p.slug === tc.expectedSlug);
-      const apiMatch = Array.isArray(apiJson.data) && apiJson.data.some((p) => p.slug === tc.expectedSlug);
+      const repoIdx = repoRes.items.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug));
+      const syncIdx = syncRes.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug));
+      const apiIdx = Array.isArray(apiJson.data) ? apiJson.data.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug)) : -2;
 
-      assert(repoMatch, `MockCatalogRepository did not return ${tc.expectedSlug}`);
-      assert(syncMatch, `ProductService.getAllProducts did not return ${tc.expectedSlug}`);
-      assert(apiMatch, `GET /api/products did not return ${tc.expectedSlug}`);
+      const repoRank = repoIdx === -1 ? 999 : repoIdx + 1;
+      const syncRank = syncIdx === -1 ? 999 : syncIdx + 1;
+      const apiRank = apiIdx === -1 ? 999 : apiIdx + 1;
+
+      assert(repoRank >= 1 && repoRank <= 3, `MockCatalogRepository rank (${repoRank}) not in Top-3 for ${tc.expectedSlug}`);
+      assert(syncRank >= 1 && syncRank <= 3, `ProductService rank (${syncRank}) not in Top-3 for ${tc.expectedSlug}`);
+      assert(apiRank >= 1 && apiRank <= 3, `GET /api/products rank (${apiRank}) not in Top-3 for ${tc.expectedSlug}`);
 
       recordResult(
-        `[${tc.id}] [${tc.category}] "${tc.query}" -> ${tc.expectedSlug}`,
+        `[${tc.id}] [${tc.category}] "${tc.query}" -> ${tc.expectedSlug} (Rank: repo=${repoRank}, sync=${syncRank}, api=${apiRank})`,
         true,
-        `repo=${repoRes.items.length}, sync=${syncRes.length}, top=${repoRes.items[0]?.slug}`
+        `criteria=Top-3, topHit=${repoRes.items[0]?.slug}`
       );
     } catch (err) {
       recordResult(`[${tc.id}] [${tc.category}] "${tc.query}" -> ${tc.expectedSlug}`, false, err.message);
+    }
+  }
+
+  console.log('\n[SUITE 1B] Exact Commercial Name Search (Asserting Strictly Top-1)...');
+  for (const tc of EXACT_NAME_CASES) {
+    try {
+      const repoRes = await repo.getProducts({ search: tc.query, pageSize: 36 });
+      const syncRes = ProductService.getAllProducts({ search: tc.query });
+      const apiRes = await GET(new Request(`http://localhost:3000/api/products?q=${encodeURIComponent(tc.query)}&pageSize=36`));
+      const apiJson = await apiRes.json();
+
+      const repoIdx = repoRes.items.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug));
+      const syncIdx = syncRes.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug));
+      const apiIdx = Array.isArray(apiJson.data) ? apiJson.data.findIndex((p) => p.slug === tc.expectedSlug || p.slug.startsWith(tc.expectedSlug)) : -2;
+
+      const repoRank = repoIdx === -1 ? 999 : repoIdx + 1;
+      const syncRank = syncIdx === -1 ? 999 : syncIdx + 1;
+      const apiRank = apiIdx === -1 ? 999 : apiIdx + 1;
+
+      assert.equal(repoRank, 1, `MockCatalogRepository rank (${repoRank}) is not strictly Top-1 for exact query "${tc.query}"`);
+      assert.equal(syncRank, 1, `ProductService rank (${syncRank}) is not strictly Top-1 for exact query "${tc.query}"`);
+      assert.equal(apiRank, 1, `GET /api/products rank (${apiRank}) is not strictly Top-1 for exact query "${tc.query}"`);
+
+      recordResult(
+        `[${tc.id}] [${tc.category}] "${tc.query}" -> ${tc.expectedSlug} (Rank: 1)`,
+        true,
+        `criteria=Top-1, topHit=${repoRes.items[0]?.slug}`
+      );
+    } catch (err) {
+      recordResult(`[${tc.id}] [${tc.category}] "${tc.query}" -> ${tc.expectedSlug}`, false, err.message);
+    }
+  }
+
+  console.log('\n[SUITE 1C] Negative Out-of-Catalog Search Cases (Asserting 0 Results / "مفيش نتائج")...');
+  for (const nc of NEGATIVE_SEARCH_CASES) {
+    try {
+      const repoRes = await repo.getProducts({ search: nc.query, pageSize: 36 });
+      const syncRes = ProductService.getAllProducts({ search: nc.query });
+      const apiRes = await GET(new Request(`http://localhost:3000/api/products?q=${encodeURIComponent(nc.query)}&pageSize=36`));
+      const apiJson = await apiRes.json();
+
+      assert.equal(repoRes.items.length, 0, `MockCatalogRepository returned ${repoRes.items.length} items for "${nc.query}"`);
+      assert.equal(syncRes.length, 0, `ProductService returned ${syncRes.length} items for "${nc.query}"`);
+      assert(Array.isArray(apiJson.data) && apiJson.data.length === 0, `GET /api/products returned ${apiJson.data?.length} items for "${nc.query}"`);
+
+      recordResult(
+        `[${nc.id}] [${nc.category}] "${nc.query}" -> 0 results ("مفيش نتائج")`,
+        true,
+        `repo=0, sync=0, api=0`
+      );
+    } catch (err) {
+      recordResult(`[${nc.id}] [${nc.category}] "${nc.query}" -> 0 results`, false, err.message);
     }
   }
 
