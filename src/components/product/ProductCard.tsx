@@ -9,6 +9,8 @@ import { useLocaleStore } from '@/lib/store/useLocaleStore';
 import { useCartStore } from '@/lib/store/useCartStore';
 import { Badge } from '@/components/ui/Badge';
 import { ActiveIngredientTag } from '@/components/ui/ActiveIngredientTag';
+import { MedicineBoxSvg } from '@/components/product/MedicineBoxSvg';
+import { triggerFlyToCart } from '@/components/cart/FlyToCartManager';
 import { ShoppingBag, Check, ArrowRightLeft } from 'lucide-react';
 
 interface ProductCardProps {
@@ -29,6 +31,7 @@ export function ProductCard({ product, onOpenSubstitute }: ProductCardProps) {
     e.stopPropagation();
     addItem(product, 1);
     setIsAdded(true);
+    triggerFlyToCart(e.currentTarget as HTMLElement, product.nameAr, product.nameEn);
     setTimeout(() => setIsAdded(false), 1500);
   };
 
@@ -56,20 +59,10 @@ export function ProductCard({ product, onOpenSubstitute }: ProductCardProps) {
         {/* Product Image / Package Preview */}
         <Link
           href={`/product/${product.id}`}
-          className="block w-full aspect-[4/3] rounded-xl overflow-hidden relative mb-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 group-hover:scale-[1.02] transition-transform duration-200"
+          className="block w-full aspect-[4/3] rounded-xl overflow-hidden relative mb-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800/60 group-hover:scale-[1.02] transition-transform duration-200 p-2 flex items-center justify-center"
           aria-label={locale === 'ar' ? product.nameAr : product.nameEn}
         >
-          {/* SVG Package Visual */}
-          <div className="w-full h-full flex items-center justify-center p-3">
-            <Image
-              src={product.images[0] || '/placeholders/default-medicine.svg'}
-              alt={locale === 'ar' ? product.nameAr : product.nameEn}
-              width={300}
-              height={240}
-              className="w-full h-full object-contain drop-shadow-sm"
-              unoptimized
-            />
-          </div>
+          <MedicineBoxSvg product={product} variant="card" />
         </Link>
 
         {/* Active Ingredient Molecule Chip */}

@@ -22,7 +22,7 @@ export function HeroBanner() {
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold mb-4 backdrop-blur-sm">
           <Sparkles className="w-3.5 h-3.5" />
           <span>
-            {locale === 'ar' ? 'صيدلية إلكترونية بروح مصرية 🇪🇬' : 'Authentic Egyptian Care 🇪🇬'}
+            {locale === 'ar' ? 'صيدلية إلكترونية بروح مصرية' : 'Authentic Egyptian Care'}
           </span>
         </div>
 

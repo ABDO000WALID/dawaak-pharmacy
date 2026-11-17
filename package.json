@@ -8,12 +8,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node tests/runner.js"
+    "test": "node tests/runner.js && node tests/challenger-search.test.js && node tests/adversarial-r2-verification.test.js && node tests/test-route-handler-and-search.test.js && node tests/test-url-filters-and-pagination.test.js && node tests/test-creative-innovations.test.js && node tests/test-phase2-search-validation.test.js",
+    "test:base": "node tests/runner.js",
+    "test:pg": "node scripts/verify-postgres-full.js",
+    "test:migrations": "node scripts/verify-migration-idempotency.js"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.46.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.454.0",
     "next": "^14.2.15",
+    "pg": "^8.13.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^2.5.4",
@@ -21,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
+    "@types/pg": "^8.11.10",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "autoprefixer": "^10.4.20",

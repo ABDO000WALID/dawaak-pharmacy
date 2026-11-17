@@ -179,7 +179,7 @@ export function VoiceSearchModal({
       }}
       title={
         locale === 'ar'
-          ? 'البحث الصوتي باللهجة المصرية 🎙️'
+          ? 'البحث الصوتي باللهجة المصرية'
           : 'Egyptian Arabic Voice Search'
       }
       maxWidth="md"
@@ -251,7 +251,7 @@ export function VoiceSearchModal({
                 {isListening
                   ? (locale === 'ar' ? 'بسمعك...' : 'Listening...')
                   : isFinalResult
-                  ? (locale === 'ar' ? 'تم التقاط طلبك بنجاح ✨' : 'Recognized!')
+                  ? (locale === 'ar' ? 'تم التقاط طلبك بنجاح' : 'Recognized!')
                   : (locale === 'ar' ? 'جاهز للاستماع' : 'Ready')}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-cairo">

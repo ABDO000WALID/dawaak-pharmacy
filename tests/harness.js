@@ -271,26 +271,27 @@ export function searchCatalog(query, categoryId, products = SYNTHETIC_PRODUCTS) 
 
     // 6. Multi-token match for compound queries
     const arTokens = normalizedQuery.split(/\s+/).filter((t) => t.length >= 3);
+    const nameWordsAr = normalizeArabic(product.nameAr).split(/\s+/);
+    const activeWordsAr = normalizeArabic(product.activeIngredientAr || '').split(/\s+/);
+    const allWordsAr = [...nameWordsAr, ...activeWordsAr];
+    const matchedArTokens = arTokens.filter((token) => allWordsAr.includes(token));
     if (
       arTokens.length > 1 &&
-      arTokens.some(
-        (token) =>
-          normalizeArabic(product.nameAr).includes(token) ||
-          normalizeArabic(product.activeIngredientAr || '').includes(token)
-      )
+      matchedArTokens.length >= Math.min(2, arTokens.length) &&
+      matchedArTokens.length >= Math.ceil(arTokens.length * 0.5)
     ) {
       return true;
     }
 
     const enTokens = rawQuery.split(/\s+/).filter((t) => t.length >= 3);
+    const nameWordsEn = product.nameEn.toLowerCase().split(/\s+/);
+    const activeWordsEn = (product.activeIngredientEn || product.activeIngredient || '').toLowerCase().split(/\s+/);
+    const allWordsEn = [...nameWordsEn, ...activeWordsEn];
+    const matchedEnTokens = enTokens.filter((token) => allWordsEn.includes(token));
     if (
       enTokens.length > 1 &&
-      enTokens.some(
-        (token) =>
-          product.nameEn.toLowerCase().includes(token) ||
-          (product.activeIngredientEn || '').toLowerCase().includes(token) ||
-          (product.activeIngredient || '').toLowerCase().includes(token)
-      )
+      matchedEnTokens.length >= Math.min(2, enTokens.length) &&
+      matchedEnTokens.length >= Math.ceil(enTokens.length * 0.5)
     ) {
       return true;
     }

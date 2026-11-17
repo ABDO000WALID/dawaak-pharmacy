@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
 import { useThemeStore } from '@/lib/store/useThemeStore';
 import { useCartStore } from '@/lib/store/useCartStore';
+import { FlyToCartManager } from '@/components/cart/FlyToCartManager';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   const { dir, locale } = useLocaleStore();
@@ -25,5 +26,10 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     }
   }, [dir, locale, theme, setHasHydrated]);
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <FlyToCartManager />
+    </>
+  );
 }

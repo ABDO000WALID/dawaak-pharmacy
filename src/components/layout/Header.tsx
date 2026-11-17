@@ -9,10 +9,11 @@ import { useCartStore } from '@/lib/store/useCartStore';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
 import { useThemeStore } from '@/lib/store/useThemeStore';
 import { VoiceSearchModal } from '@/components/home/VoiceSearchModal';
+import { BarcodeScannerModal } from '@/components/search/BarcodeScannerModal';
 import { ProductService } from '@/lib/services/product-service';
 import { SyntheticProduct } from '@/types/product';
 import { formatEGP } from '@/lib/utils/currency';
-import { Search, ShoppingBag, Moon, Sun, Globe, Mic, X } from 'lucide-react';
+import { Search, ShoppingBag, Moon, Sun, Globe, Mic, X, ScanLine } from 'lucide-react';
 
 export function Header() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const desktopContainerRef = useRef<HTMLDivElement>(null);
@@ -237,6 +239,15 @@ export function Header() {
                 )}
                 <button
                   type="button"
+                  onClick={() => setIsBarcodeOpen(true)}
+                  title={locale === 'ar' ? 'مسح باركود الدواء' : 'Scan Barcode'}
+                  aria-label={locale === 'ar' ? 'مسح باركود الدواء' : 'Scan Barcode'}
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950 hover:text-teal-700 transition"
+                >
+                  <ScanLine className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIsVoiceOpen(true)}
                   title={locale === 'ar' ? 'بحث صوتي باللهجة المصرية' : 'Voice Search'}
                   aria-label={locale === 'ar' ? 'بحث صوتي باللهجة المصرية' : 'Voice Search'}
@@ -290,6 +301,7 @@ export function Header() {
 
             {/* Cart Counter Button */}
             <Link
+              id="header-cart-icon"
               href="/cart"
               className="relative p-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white transition active:scale-95 shadow-sm shadow-teal-700/20 flex items-center justify-center"
               aria-label={locale === 'ar' ? `سلة المشتريات (${cartItemCount} عناصر)` : `Cart (${cartItemCount} items)`}
@@ -348,6 +360,15 @@ export function Header() {
                 )}
                 <button
                   type="button"
+                  onClick={() => setIsBarcodeOpen(true)}
+                  title={locale === 'ar' ? 'مسح باركود الدواء' : 'Scan Barcode'}
+                  aria-label={locale === 'ar' ? 'مسح باركود الدواء' : 'Scan Barcode'}
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950 hover:text-teal-700 transition"
+                >
+                  <ScanLine className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => setIsVoiceOpen(true)}
                   className="p-1.5 rounded-full bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400"
                 >
@@ -367,6 +388,12 @@ export function Header() {
         isOpen={isVoiceOpen}
         onClose={() => setIsVoiceOpen(false)}
         onSelectPhrase={handleVoiceSelect}
+      />
+
+      {/* Barcode Scanner Modal */}
+      <BarcodeScannerModal
+        isOpen={isBarcodeOpen}
+        onClose={() => setIsBarcodeOpen(false)}
       />
     </header>
   );

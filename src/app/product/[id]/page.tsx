@@ -13,6 +13,8 @@ import { ActiveIngredientTag } from '@/components/ui/ActiveIngredientTag';
 import { QuantityStepper } from '@/components/ui/QuantityStepper';
 import { StickyPurchaseBar } from '@/components/product/StickyPurchaseBar';
 import { SubstituteFinderModal } from '@/components/product/SubstituteFinderModal';
+import { MedicineBox3D } from '@/components/product/MedicineBox3D';
+import { triggerFlyToCart } from '@/components/cart/FlyToCartManager';
 import {
   ChevronRight,
   ChevronLeft,
@@ -74,9 +76,12 @@ export default function ProductDetailPage() {
   const currentPrice = product.salePriceEgp ?? product.priceEgp;
   const hasDiscount = !!product.salePriceEgp && product.salePriceEgp < product.priceEgp;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e?: React.MouseEvent) => {
     addItem(product, quantity);
     setIsAdded(true);
+    if (e?.currentTarget) {
+      triggerFlyToCart(e.currentTarget as HTMLElement, product.nameAr, product.nameEn);
+    }
     setTimeout(() => setIsAdded(false), 1500);
   };
 
@@ -115,20 +120,13 @@ export default function ProductDetailPage() {
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-5 sm:p-8 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Left Column: Product Image & Badges */}
         <div className="space-y-4">
-          <div className="aspect-[4/3] rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 p-6 flex items-center justify-center relative overflow-hidden">
-            <Image
-              src={product.images[0] || '/placeholders/default-medicine.svg'}
-              alt={locale === 'ar' ? product.nameAr : product.nameEn}
-              width={400}
-              height={300}
-              className="max-h-full max-w-full object-contain drop-shadow-md"
-              unoptimized
-            />
+          <div className="rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100/60 dark:from-slate-800/40 dark:to-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 relative overflow-hidden flex flex-col items-center">
             {hasDiscount && (
-              <span className="absolute top-4 start-4 text-xs font-black px-2.5 py-1 rounded-full bg-rose-500 text-white shadow-sm">
+              <span className="absolute top-4 start-4 text-xs font-black px-2.5 py-1 rounded-full bg-rose-500 text-white shadow-sm z-10">
                 {locale === 'ar' ? 'خصم خاص' : 'Sale'}
               </span>
             )}
+            <MedicineBox3D product={product} />
           </div>
 
           {/* Trust Guarantees */}
@@ -336,10 +334,13 @@ export default function ProductDetailPage() {
                 ))}
               </ul>
               <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200">
-                <p className="font-semibold">
-                  {locale === 'ar'
-                    ? '⚠️ تنبيه: استشر الطبيب أو الصيدلي دائماً قبل تناول هذا المستحضر، خاصة لمرضى الحساسية والنساء الحوامل.'
-                    : '⚠️ Caution: Always consult your physician or clinical pharmacist prior to starting treatment.'}
+                <p className="font-semibold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>
+                    {locale === 'ar'
+                      ? 'تنبيه: استشر الطبيب أو الصيدلي دائماً قبل تناول هذا المستحضر، خاصة لمرضى الحساسية والنساء الحوامل.'
+                      : 'Caution: Always consult your physician or clinical pharmacist prior to starting treatment.'}
+                  </span>
                 </p>
               </div>
             </div>

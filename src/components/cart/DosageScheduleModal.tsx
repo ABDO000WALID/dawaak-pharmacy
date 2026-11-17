@@ -44,7 +44,7 @@ export function DosageScheduleModal({ isOpen, onClose }: DosageScheduleModalProp
       onClose={onClose}
       title={
         locale === 'ar'
-          ? 'جدول مواعيد الدواء الذكي 📅'
+          ? 'جدول مواعيد الدواء الذكي'
           : 'Smart Medication Dosage Schedule'
       }
       maxWidth="xl"
@@ -79,7 +79,7 @@ export function DosageScheduleModal({ isOpen, onClose }: DosageScheduleModalProp
               <div className="flex items-center gap-2 px-4 py-2.5 bg-amber-100/70 dark:bg-amber-900/40 border-b border-amber-200 dark:border-amber-800/40">
                 <Sunrise className="w-4 h-4 text-amber-700 dark:text-amber-400" />
                 <h4 className="font-bold text-sm text-amber-900 dark:text-amber-200 font-cairo">
-                  {locale === 'ar' ? '🌅 الصباح (مع الإفطار أو قبله)' : '🌅 Morning (With or Before Breakfast)'}
+                  {locale === 'ar' ? 'الصباح (مع الإفطار أو قبله)' : 'Morning (With or Before Breakfast)'}
                 </h4>
                 <span className="ms-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-200/60 text-amber-900 dark:text-amber-200">
                   {morningMeds.length} {locale === 'ar' ? 'أدوية' : 'meds'}
@@ -113,7 +113,7 @@ export function DosageScheduleModal({ isOpen, onClose }: DosageScheduleModalProp
               <div className="flex items-center gap-2 px-4 py-2.5 bg-sky-100/70 dark:bg-sky-900/40 border-b border-sky-200 dark:border-sky-800/40">
                 <Sun className="w-4 h-4 text-sky-700 dark:text-sky-400" />
                 <h4 className="font-bold text-sm text-sky-900 dark:text-sky-200 font-cairo">
-                  {locale === 'ar' ? '☀️ الظهر (بعد الغداء)' : '☀️ Noon (After Lunch)'}
+                  {locale === 'ar' ? 'الظهر (بعد الغداء)' : 'Noon (After Lunch)'}
                 </h4>
                 <span className="ms-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-200/60 text-sky-900 dark:text-sky-200">
                   {noonMeds.length} {locale === 'ar' ? 'أدوية' : 'meds'}
@@ -147,7 +147,7 @@ export function DosageScheduleModal({ isOpen, onClose }: DosageScheduleModalProp
               <div className="flex items-center gap-2 px-4 py-2.5 bg-indigo-100/70 dark:bg-indigo-900/40 border-b border-indigo-200 dark:border-indigo-800/40">
                 <Moon className="w-4 h-4 text-indigo-700 dark:text-indigo-400" />
                 <h4 className="font-bold text-sm text-indigo-900 dark:text-indigo-200 font-cairo">
-                  {locale === 'ar' ? '🌙 المساء (قبل النوم / بعد العشاء)' : '🌙 Night (Before Sleep / Dinner)'}
+                  {locale === 'ar' ? 'المساء (قبل النوم / بعد العشاء)' : 'Night (Before Sleep / Dinner)'}
                 </h4>
                 <span className="ms-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-indigo-200/60 text-indigo-900 dark:text-indigo-200">
                   {nightMeds.length} {locale === 'ar' ? 'أدوية' : 'meds'}
@@ -198,7 +198,7 @@ export function DosageScheduleModal({ isOpen, onClose }: DosageScheduleModalProp
             className="flex-1 py-3 px-4 rounded-xl bg-teal-700 hover:bg-teal-800 active:scale-95 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 font-cairo"
           >
             <Printer className="w-4 h-4" />
-            <span>{locale === 'ar' ? 'طباعة الجدول وعلقه على الثلاجة 🖨️' : 'Print Schedule for Refrigerator'}</span>
+            <span>{locale === 'ar' ? 'طباعة الجدول وعلقه على الثلاجة' : 'Print Schedule for Refrigerator'}</span>
           </button>
           <button
             type="button"

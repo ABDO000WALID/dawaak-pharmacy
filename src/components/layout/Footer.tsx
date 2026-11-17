@@ -4,7 +4,16 @@ import React from 'react';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
-import { ShieldCheck, PhoneCall, Truck, CreditCard, HeartHandshake } from 'lucide-react';
+import {
+  ShieldCheck,
+  PhoneCall,
+  Truck,
+  CreditCard,
+  HeartHandshake,
+  Banknote,
+  Zap,
+  Smartphone,
+} from 'lucide-react';
 
 export function Footer() {
   const { locale } = useLocaleStore();
@@ -117,17 +126,21 @@ export function Footer() {
               {locale === 'ar' ? 'طرق الدفع المصرية' : 'Egyptian Payment Rails'}
             </h4>
             <div className="flex flex-wrap gap-2 text-[11px]">
-              <span className="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold">
-                💵 الدفع كاش عند الاستلام
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold">
+                <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{locale === 'ar' ? 'الدفع كاش عند الاستلام' : 'Cash on Delivery'}</span>
               </span>
-              <span className="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-purple-700 dark:text-purple-400">
-                ⚡ InstaPay إنستاباي
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-purple-700 dark:text-purple-400">
+                <Zap className="w-3.5 h-3.5 text-purple-600" />
+                <span>{locale === 'ar' ? 'InstaPay إنستاباي' : 'InstaPay'}</span>
               </span>
-              <span className="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-red-600 dark:text-red-400">
-                📱 فودافون كاش
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-red-600 dark:text-red-400">
+                <Smartphone className="w-3.5 h-3.5 text-red-600" />
+                <span>{locale === 'ar' ? 'فودافون كاش' : 'Vodafone Cash'}</span>
               </span>
-              <span className="px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-blue-600 dark:text-blue-400">
-                💳 ميزة وبطاقات بنكية
+              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-semibold text-blue-600 dark:text-blue-400">
+                <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+                <span>{locale === 'ar' ? 'ميزة وبطاقات بنكية' : 'Meeza & Bank Cards'}</span>
               </span>
             </div>
           </div>

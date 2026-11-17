@@ -4,7 +4,7 @@
 
 This project establishes the technical architecture, design system, specifications, and core interactive implementation of an online pharmacy tailored specifically to the Egyptian healthcare consumer and regulatory landscape.
 
-Operating under a 7-role collaborative team model (Tech Lead, UI/UX Designer, Frontend Developer, Backend Developer, Pharmacy Domain Expert, Security & QA Engineer, Creative Innovator), the platform bridges traditional Egyptian apothecary trust ("صيدلية المنطقة") with modern, mobile-first e-commerce speed, transparent pricing in Egyptian Pounds (EGP / ج.م), and strict compliance with the Egyptian Drug Authority (EDA) and Personal Data Protection Law (151/2020).
+Operating under a 7-role collaborative team model (Tech Lead, UI/UX Designer, Frontend Developer, Backend Developer, Pharmacy Domain Expert, Security & QA Engineer, Creative Innovator), the platform bridges traditional Egyptian apothecary trust ("صيدلية المنطقة") with modern, mobile-first e-commerce speed, transparent pricing in Egyptian Pounds (EGP / ج.م), and alignment with Egyptian pharmacy dispensing standards and Personal Data Protection Law (151/2020) without claiming official government endorsement.
 
 ### Core Architectural Pillars
 - **Framework & Runtime**: Next.js 14/15 App Router with TypeScript (Strict Mode) and React Server Components (RSC) where appropriate, paired with reactive client islands.

@@ -7,11 +7,12 @@ import {
   CatalogRepository,
   ProductFilterOptions,
   PaginatedProductsResult,
+  wordTrigramSimilarity,
 } from '@/lib/repositories';
 
 // Egyptian dialect colloquial symptom dictionary mapping
 const DIALECT_MAP: Record<string, string[]> = {
-  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast'],
+  'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast', 'citra-cold-sinus'],
   'سخونية': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'syntraphol-nile-generic-500', 'kids-relief-fever-syrup'],
   'حرارة': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
   'مغص': ['egyptocalm-effervescent', 'gastroshield-m-20', 'ombrasynth-local-20', 'ombrasynth-colon-care', 'pediasynth-colic-drops'],
@@ -23,25 +24,25 @@ const DIALECT_MAP: Record<string, string[]> = {
   'أعصاب': ['neurorelief-z-50'],
   'فيتامين': ['vitaboost-max-daily', 'calci-synth-d3', 'zincosynth-c', 'ferro-synth-iron'],
   'فيتامينات': ['vitaboost-max-daily', 'sleepeasy-synth-night', 'calci-synth-d3', 'zincosynth-c'],
-  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo', 'pressuresynth-monitor'],
-  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500', 'glucosynth-test-strips'],
+  'ضغط': ['cardiocare-x-10', 'cardiosynth-egypt-10', 'hypersynth-plus-combo'],
+  'سكر': ['glucofix-syn-500', 'glucofix-nile-domestic-500'],
   'مفاصل': ['osteojoint-synth-extra', 'relaxogen-forte-relaxant'],
   'عضلات': ['relaxogen-forte-relaxant'],
   'ركبة': ['osteojoint-synth-extra'],
   'خشونة': ['osteojoint-synth-extra'],
-  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel', 'safe-band-dressings'],
+  'جروح': ['septoderm-antiseptic-spray', 'dermoheal-plus-gel'],
   'حروق': ['dermoheal-plus-gel'],
   'مطهر': ['septoderm-antiseptic-spray'],
   'عين': ['ocuclear-s-eye-drops'],
   'عيني': ['ocuclear-s-eye-drops'],
-  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel', 'healthy-care-sensitive-cream'],
+  'جفاف': ['ocuclear-s-eye-drops', 'dermoheal-plus-gel'],
   'نوم': ['sleepeasy-synth-night'],
   'أرق': ['sleepeasy-synth-night'],
   'أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'teething-care-gel', 'pediasynth-colic-drops', 'baby-rehydra-sachets'],
-  'بشرة': ['healthy-care-sensitive-cream', 'acne-synth-lotion', 'dermoheal-plus-gel'],
-  'حب شباب': ['acne-synth-lotion'],
+  'بشرة': ['dermoheal-plus-gel'],
+  'حب شباب': ['dermoheal-plus-gel'],
   'تسنين': ['teething-care-gel'],
-  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup', 'thermosynth-digital-thermometer'],
+  'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
 };
 
 export { DIALECT_MAP };
@@ -114,44 +115,110 @@ export class ProductService {
       const rawQ = options.search.trim().toLowerCase();
       const normQ = normalizeArabic(options.search);
 
-      // Check Egyptian dialect symptoms with normalization
-      const dialectMatchSlugs: string[] = [];
+      // Check Egyptian dialect symptoms with dynamic multi-factor scoring
+      const dialectScores = new Map<string, number>();
       for (const [symptom, slugs] of Object.entries(DIALECT_MAP)) {
         const normSymptom = normalizeArabic(symptom);
-        if (
+        const isMatch =
           (normQ && (normQ.includes(normSymptom) || (normQ.length >= 2 && normSymptom.includes(normQ)))) ||
-          (rawQ && (rawQ.includes(symptom.toLowerCase()) || (rawQ.length >= 2 && symptom.toLowerCase().includes(rawQ))))
-        ) {
-          dialectMatchSlugs.push(...slugs);
+          (rawQ && (rawQ.includes(symptom.toLowerCase()) || (rawQ.length >= 2 && symptom.toLowerCase().includes(rawQ))));
+
+        if (isMatch) {
+          const listLen = slugs.length || 1;
+          const lenRatio = Math.min(1.0, normSymptom.length / Math.max(1, normQ.length));
+          const trigramSim = wordTrigramSimilarity(normSymptom, normQ);
+          const coverageFactor = Math.max(lenRatio, trigramSim);
+
+          slugs.forEach((slug, rankIdx) => {
+            const priorityFactor = 1 - (rankIdx / (listLen + 1)) * 0.15;
+            const dynamicScore = 0.78 + (0.08 * priorityFactor) + (0.05 * coverageFactor);
+            const prev = dialectScores.get(slug) || 0;
+            if (dynamicScore > prev) {
+              dialectScores.set(slug, dynamicScore);
+            }
+          });
         }
       }
 
-      result = result.filter(p => {
-        if (dialectMatchSlugs.includes(p.slug)) return true;
+      const scored = result.map(p => {
+        let score = 0;
+        const baseDialectScore = dialectScores.get(p.slug);
+        const isDialectMatch = baseDialectScore !== undefined;
+        if (isDialectMatch) {
+          let formBonus = 0;
+          const dosageAr = normalizeArabic(p.dosageFormAr || '');
+          const dosageFormLower = (p.dosageForm || '').toLowerCase();
+          if ((normQ.includes('فوار') && (dosageAr.includes('فوار') || p.slug.includes('effervescent') || dosageFormLower.includes('effervescent'))) ||
+              (normQ.includes('شراب') && (dosageAr.includes('شراب') || dosageFormLower.includes('syrup'))) ||
+              (normQ.includes('قطرة') && (dosageAr.includes('قطرة') || dosageFormLower.includes('drop'))) ||
+              (normQ.includes('كبسول') && (dosageAr.includes('كبسول') || dosageFormLower.includes('capsule')))) {
+            formBonus = 0.04;
+          }
+          score += baseDialectScore + formBonus;
+        }
 
         const normNameAr = normalizeArabic(p.nameAr);
         const normActiveAr = normalizeArabic(p.activeIngredientAr);
         const normDescAr = normalizeArabic(p.descriptionAr);
+        const nameEn = p.nameEn.toLowerCase();
+        const activeEn = p.activeIngredientEn.toLowerCase();
+        const descEn = p.descriptionEn.toLowerCase();
 
         const arTokens = normQ.split(/\s+/).filter(t => t.length >= 3);
         const enTokens = rawQ.split(/\s+/).filter(t => t.length >= 3);
+
+        const nameWordsAr = normNameAr.split(/\s+/);
+        const activeWordsAr = normActiveAr.split(/\s+/);
+        const allWordsAr = [...nameWordsAr, ...activeWordsAr];
+        const matchedArTokens = arTokens.filter(t => allWordsAr.includes(t));
+        const multiTokenArMatch = arTokens.length > 1 &&
+          matchedArTokens.length >= Math.min(2, arTokens.length) &&
+          matchedArTokens.length >= Math.ceil(arTokens.length * 0.5);
+
+        const nameWordsEn = nameEn.split(/\s+/);
+        const activeWordsEn = activeEn.split(/\s+/);
+        const allWordsEn = [...nameWordsEn, ...activeWordsEn];
+        const matchedEnTokens = enTokens.filter(t => allWordsEn.includes(t));
+        const multiTokenEnMatch = enTokens.length > 1 &&
+          matchedEnTokens.length >= Math.min(2, enTokens.length) &&
+          matchedEnTokens.length >= Math.ceil(enTokens.length * 0.5);
 
         const matchesArabic = normQ.length > 0 && (
           normNameAr.includes(normQ) ||
           normActiveAr.includes(normQ) ||
           normDescAr.includes(normQ) ||
-          (arTokens.length > 1 && arTokens.some(t => normNameAr.includes(t) || normActiveAr.includes(t)))
+          multiTokenArMatch
         );
 
         const matchesEnglish = rawQ.length > 0 && (
-          p.nameEn.toLowerCase().includes(rawQ) ||
-          p.activeIngredientEn.toLowerCase().includes(rawQ) ||
-          p.descriptionEn.toLowerCase().includes(rawQ) ||
-          (enTokens.length > 1 && enTokens.some(t => p.nameEn.toLowerCase().includes(t) || p.activeIngredientEn.toLowerCase().includes(t)))
+          nameEn.includes(rawQ) ||
+          activeEn.includes(rawQ) ||
+          descEn.includes(rawQ) ||
+          multiTokenEnMatch
         );
 
-        return matchesArabic || matchesEnglish;
+        if (matchesArabic) score += 0.9;
+        if (matchesEnglish) score += 0.9;
+
+        // Trigram fuzzy similarity (tolerance for typos matching pg_trgm word_similarity)
+        const simNameAr = wordTrigramSimilarity(normQ, normNameAr);
+        const simActiveAr = wordTrigramSimilarity(normQ, normActiveAr);
+        const simNameEn = wordTrigramSimilarity(rawQ, nameEn);
+        const simActiveEn = wordTrigramSimilarity(rawQ, activeEn);
+
+        const bestSim = Math.max(simNameAr, simActiveAr, simNameEn, simActiveEn);
+        const simThreshold = (arTokens.length >= 3 || enTokens.length >= 3) ? 0.32 : 0.28;
+        if (bestSim >= simThreshold) {
+          score += bestSim * 0.75;
+        }
+
+        return { product: p, score, matched: isDialectMatch || matchesArabic || matchesEnglish || bestSim >= simThreshold };
       });
+
+      result = scored
+        .filter(item => item.matched && item.score > 0.2)
+        .sort((a, b) => b.score - a.score)
+        .map(item => item.product);
     }
 
     if (options?.sort) {
