@@ -62,7 +62,7 @@ export function SubstituteFinderModal({
             </div>
             <div>
               <p className="font-bold text-sm md:text-base font-cairo">
-                {locale === 'ar' ? 'وفر مع البديل المصري المعتمد!' : 'Save with Domestic Egyptian Generic!'}
+                {locale === 'ar' ? 'وفر مع البديل المحلي المكافئ!' : 'Save with Domestic Generic Alternative!'}
               </p>
               <p className="text-xs text-emerald-100">
                 {locale === 'ar'

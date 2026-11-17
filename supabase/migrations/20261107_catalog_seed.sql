@@ -566,7 +566,7 @@ INSERT INTO products (
 
 -- prod-syn-032
 ('prod-syn-032', 'EGY-SYN-032', 'baby-rehydra-sachets', 'بيبي-ريهايدرا محلول معالجة جفاف الأطفال', 'Baby-Rehydra Electrolyte Sachets', 'pediatric-health',
- 'أملاح تروية فموية تركيبية مطابقة لمعايير الصحة العالمية', 'SynOralElectrolyte Salts WHO formula', 'Multi-Salt Formula',
+ 'أملاح تروية فموية تركيبية متوازنة لتعويض السوائل', 'SynOralElectrolyte Salts Balanced Formula', 'Multi-Salt Formula',
  'Sachets', 'أكياس محلول جفاف فموي', '10 Sachets', 'علبة 10 أكياس',
  'Memphis Synth Healthcare', 'ممفيس للصناعات الدوائية الوطنية', 19.00, NULL,
  250, 1, 5,
@@ -581,9 +581,41 @@ INSERT INTO products (
  TRUE, 'بيانات دوائية تجريبية لأغراض المحاكاة والتطوير فقط - المادة الفعالة غير حقيقية', 'Synthetic mock pharmaceutical data for development purposes only - Active ingredient is simulated',
  4.9, 160, 'morning')
 ON CONFLICT (id) DO UPDATE SET
+    sku = EXCLUDED.sku,
+    slug = EXCLUDED.slug,
+    name_ar = EXCLUDED.name_ar,
+    name_en = EXCLUDED.name_en,
+    category_id = EXCLUDED.category_id,
+    active_ingredient_ar = EXCLUDED.active_ingredient_ar,
+    active_ingredient_en = EXCLUDED.active_ingredient_en,
+    concentration = EXCLUDED.concentration,
+    dosage_form = EXCLUDED.dosage_form,
+    dosage_form_ar = EXCLUDED.dosage_form_ar,
+    pack_size = EXCLUDED.pack_size,
+    pack_size_ar = EXCLUDED.pack_size_ar,
+    manufacturer = EXCLUDED.manufacturer,
+    manufacturer_ar = EXCLUDED.manufacturer_ar,
     price_egp = EXCLUDED.price_egp,
     sale_price_egp = EXCLUDED.sale_price_egp,
-    stock_quantity = EXCLUDED.stock_quantity;
+    stock_quantity = EXCLUDED.stock_quantity,
+    min_order_quantity = EXCLUDED.min_order_quantity,
+    max_order_quantity = EXCLUDED.max_order_quantity,
+    prescription_required = EXCLUDED.prescription_required,
+    storage_conditions = EXCLUDED.storage_conditions,
+    storage_conditions_ar = EXCLUDED.storage_conditions_ar,
+    images = EXCLUDED.images,
+    description_ar = EXCLUDED.description_ar,
+    description_en = EXCLUDED.description_en,
+    dosage_instructions_ar = EXCLUDED.dosage_instructions_ar,
+    dosage_instructions_en = EXCLUDED.dosage_instructions_en,
+    warnings_ar = EXCLUDED.warnings_ar,
+    warnings_en = EXCLUDED.warnings_en,
+    is_synthetic = EXCLUDED.is_synthetic,
+    synthetic_disclaimer_ar = EXCLUDED.synthetic_disclaimer_ar,
+    synthetic_disclaimer_en = EXCLUDED.synthetic_disclaimer_en,
+    rating = EXCLUDED.rating,
+    reviews_count = EXCLUDED.reviews_count,
+    timing_bucket = EXCLUDED.timing_bucket;
 
 -- 3. Insert Bioequivalent Substitute Generic Products (Pass 2)
 INSERT INTO products (
@@ -607,12 +639,12 @@ INSERT INTO products (
  280, 1, 5,
  FALSE, 'Store below 25°C in a dry place', 'يحفظ في درجة حرارة أقل من 25 مئوية بعيداً عن الرطوبة',
  '["/placeholders/default-medicine.svg"]'::jsonb,
- 'البديل المصري المعتمد والمطابق 100% في المادة الفعالة ومعدل الامتصاص الحيوي، يقدم نفس الفعالية وبسعر اقتصادي.',
- 'Certified domestic Egyptian bioequivalent generic matching 100% molecular efficacy with substantial cost savings.',
+ 'البديل المحلي المكافئ 100% في المادة الفعالة ومعدل الامتصاص الحيوي، يقدم نفس الفعالية وبسعر اقتصادي.',
+ 'Domestic bioequivalent generic matching 100% molecular efficacy with substantial cost savings.',
  'قرص واحد كل 8 ساعات بعد الأكل مع كوب ماء وفير.',
  '1 tablet every 8 hours after meals with water.',
- '["يحفظ بعيداً عن متناول أيدي الأطفال.", "مركب جنيس مطابق حيوياً ومعتمد من هيئة الرقابة الدوائية التجريبية."]'::jsonb,
- '["Keep out of reach of children.", "Certified bioequivalent generic formulation."]'::jsonb,
+ '["يحفظ بعيداً عن متناول أيدي الأطفال.", "مركب جنيس افتراضي مطابق حيوياً لأغراض المحاكاة والتطوير."]'::jsonb,
+ '["Keep out of reach of children.", "Simulated bioequivalent generic formulation."]'::jsonb,
  TRUE, 'بيانات دوائية تجريبية لأغراض المحاكاة والتطوير فقط - المادة الفعالة غير حقيقية', 'Synthetic mock pharmaceutical data for development purposes only - Active ingredient is simulated',
  4.9, 142, 'noon'),
 
@@ -641,8 +673,8 @@ INSERT INTO products (
  190, 1, 5,
  TRUE, 'Store below 25°C', 'يحفظ في درجة حرارة أقل من 25 مئوية',
  '["/placeholders/default-medicine.svg"]'::jsonb,
- 'البديل المحلي المطابق لعلاج ضغط الدم المزمن، يوفر 62 ج.م شهرياً لأصحاب الأمراض المزمنة مع نفس معايير الجودة والسلامة.',
- 'Certified domestic chronic hypertension alternative saving 62 EGP monthly for chronic illness patients.',
+ 'البديل المحلي المطابق لعلاج ضغط الدم المزمن، يوفر 62 ج.م شهرياً لأصحاب الأمراض المزمنة بنفس الكفاءة والمادة الفعالة.',
+ 'Domestic chronic hypertension alternative saving 62 EGP monthly for chronic illness patients.',
  'قرص واحد يومياً صباحاً مع وجبة الإفطار.',
  '1 tablet daily with morning breakfast.',
  '["يتطلب وصفة طبية سارية من طبيب باطنة أو قلب."]'::jsonb,
@@ -658,8 +690,8 @@ INSERT INTO products (
  220, 1, 5,
  TRUE, 'Store below 25°C', 'يحفظ في درجة حرارة أقل من 25 مئوية',
  '["/placeholders/default-medicine.svg"]'::jsonb,
- 'البديل المصري الموثوق لمرضى السكر المزمن، يوفر 37 ج.م في كل عبوة مع ضمان أعلى معايير الجودة والرقابة.',
- 'Certified domestic generic for chronic diabetes management saving 37 EGP per pack.',
+ 'البديل المصري الموثوق لمرضى السكر المزمن، يوفر 37 ج.م في كل عبوة بتركيبة مكافئة اقتصادية.',
+ 'Domestic generic for chronic diabetes management saving 37 EGP per pack.',
  'قرص واحد مع الأكل مرتين يومياً.',
  '1 tablet twice daily with food.',
  '["يتطلب وصفة طبية سارية."]'::jsonb,
@@ -667,11 +699,52 @@ INSERT INTO products (
  TRUE, 'بيانات دوائية تجريبية لأغراض المحاكاة والتطوير فقط - المادة الفعالة غير حقيقية', 'Synthetic mock pharmaceutical data for development purposes only - Active ingredient is simulated',
  4.9, 92, 'morning')
 ON CONFLICT (id) DO UPDATE SET
+    sku = EXCLUDED.sku,
+    slug = EXCLUDED.slug,
+    name_ar = EXCLUDED.name_ar,
+    name_en = EXCLUDED.name_en,
+    category_id = EXCLUDED.category_id,
+    active_ingredient_ar = EXCLUDED.active_ingredient_ar,
+    active_ingredient_en = EXCLUDED.active_ingredient_en,
+    concentration = EXCLUDED.concentration,
+    dosage_form = EXCLUDED.dosage_form,
+    dosage_form_ar = EXCLUDED.dosage_form_ar,
+    pack_size = EXCLUDED.pack_size,
+    pack_size_ar = EXCLUDED.pack_size_ar,
+    manufacturer = EXCLUDED.manufacturer,
+    manufacturer_ar = EXCLUDED.manufacturer_ar,
     price_egp = EXCLUDED.price_egp,
-    stock_quantity = EXCLUDED.stock_quantity;
+    sale_price_egp = EXCLUDED.sale_price_egp,
+    stock_quantity = EXCLUDED.stock_quantity,
+    min_order_quantity = EXCLUDED.min_order_quantity,
+    max_order_quantity = EXCLUDED.max_order_quantity,
+    prescription_required = EXCLUDED.prescription_required,
+    storage_conditions = EXCLUDED.storage_conditions,
+    storage_conditions_ar = EXCLUDED.storage_conditions_ar,
+    images = EXCLUDED.images,
+    description_ar = EXCLUDED.description_ar,
+    description_en = EXCLUDED.description_en,
+    dosage_instructions_ar = EXCLUDED.dosage_instructions_ar,
+    dosage_instructions_en = EXCLUDED.dosage_instructions_en,
+    warnings_ar = EXCLUDED.warnings_ar,
+    warnings_en = EXCLUDED.warnings_en,
+    is_synthetic = EXCLUDED.is_synthetic,
+    synthetic_disclaimer_ar = EXCLUDED.synthetic_disclaimer_ar,
+    synthetic_disclaimer_en = EXCLUDED.synthetic_disclaimer_en,
+    rating = EXCLUDED.rating,
+    reviews_count = EXCLUDED.reviews_count,
+    timing_bucket = EXCLUDED.timing_bucket;
 
 -- 4. Link Bioequivalent Substitutes and Savings
 UPDATE products SET substitute_id = 'prod-syn-001-alt', substitute_savings_egp = 14.50 WHERE id = 'prod-syn-001';
 UPDATE products SET substitute_id = 'prod-syn-004-alt', substitute_savings_egp = 27.00 WHERE id = 'prod-syn-004';
 UPDATE products SET substitute_id = 'prod-syn-005-alt', substitute_savings_egp = 62.00 WHERE id = 'prod-syn-005';
 UPDATE products SET substitute_id = 'prod-syn-011-alt', substitute_savings_egp = 37.00 WHERE id = 'prod-syn-011';
+
+INSERT INTO substitutes (product_id, substitute_id, savings_egp) VALUES
+('prod-syn-001', 'prod-syn-001-alt', 14.50),
+('prod-syn-004', 'prod-syn-004-alt', 27.00),
+('prod-syn-005', 'prod-syn-005-alt', 62.00),
+('prod-syn-011', 'prod-syn-011-alt', 37.00)
+ON CONFLICT (product_id, substitute_id) DO UPDATE SET
+    savings_egp = EXCLUDED.savings_egp;

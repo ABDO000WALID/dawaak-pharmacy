@@ -280,7 +280,7 @@ async function runFullVerification() {
   const rlsRes = await client.query(`
     SELECT relname, relrowsecurity 
     FROM pg_class 
-    WHERE relname IN ('categories', 'products')
+    WHERE relname IN ('categories', 'products', 'substitutes')
   `);
   for (const row of rlsRes.rows) {
     console.log(`✔ Table "${row.relname}": rowsecurity = ${row.relrowsecurity}`);

@@ -133,8 +133,8 @@ function HomeContent() {
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             {locale === 'ar'
-              ? 'أدوية تركيبية معتمدة مع ضمان أعلى معايير التخزين والبدائل الموفرة'
-              : 'Certified synthetic pharmaceutical catalog with bioequivalent generic savings'}
+              ? 'كتالوج أدوية تركيبية مع توفير البدائل المكافئة بأسعار عادلة'
+              : 'Synthetic pharmaceutical catalog with bioequivalent generic savings'}
           </p>
         </div>
       </div>

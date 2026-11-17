@@ -23,6 +23,10 @@ RETURNS TEXT LANGUAGE sql IMMUTABLE PARALLEL SAFE AS $$
 $$;
 
 -- 2. Upgrade search_products_fuzzy to use word_similarity, normalize_arabic, and dialect_slugs
+-- Drop legacy signatures to prevent overloaded function ambiguity
+DROP FUNCTION IF EXISTS search_products_fuzzy(TEXT, FLOAT, TEXT, BOOLEAN, NUMERIC, NUMERIC, INT, INT);
+DROP FUNCTION IF EXISTS search_products_fuzzy(TEXT, FLOAT, TEXT, BOOLEAN, NUMERIC, NUMERIC, INT, INT, TEXT[]);
+
 CREATE OR REPLACE FUNCTION search_products_fuzzy(
     search_term TEXT,
     similarity_threshold FLOAT DEFAULT 0.20,

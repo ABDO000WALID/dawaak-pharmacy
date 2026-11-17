@@ -70,6 +70,21 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- ============================================================================
+-- 3b. Create Substitutes Table
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS substitutes (
+    id VARCHAR(64) PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    product_id VARCHAR(64) NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    substitute_id VARCHAR(64) NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    savings_egp NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (savings_egp >= 0),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_product_substitute UNIQUE (product_id, substitute_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_substitutes_product ON substitutes(product_id);
+CREATE INDEX IF NOT EXISTS idx_substitutes_substitute ON substitutes(substitute_id);
+
+-- ============================================================================
 -- 4. Trigram GIN Indexes (Fast Typo-Tolerant Similarity & Substring search)
 -- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_products_name_ar_trgm ON products USING gin (name_ar gin_trgm_ops);
@@ -85,35 +100,53 @@ CREATE INDEX IF NOT EXISTS idx_products_rating ON products(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 
 -- ============================================================================
--- 5. Row Level Security (RLS) Policies
+-- 5. Row Level Security (RLS) Policies (Guarded for Idempotent Execution)
 -- ============================================================================
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE substitutes ENABLE ROW LEVEL SECURITY;
 
 -- Categories: Public read access for active categories
+DROP POLICY IF EXISTS "Public read active categories" ON categories;
 CREATE POLICY "Public read active categories" 
 ON categories FOR SELECT 
 USING (is_active = TRUE);
 
 -- Products: Public read access for all catalog items
+DROP POLICY IF EXISTS "Public read products" ON products;
 CREATE POLICY "Public read products" 
 ON products FOR SELECT 
 USING (TRUE);
 
 -- Secure Mutations: Only service_role or admin may insert/update/delete
+DROP POLICY IF EXISTS "Service role full access categories" ON categories;
 CREATE POLICY "Service role full access categories" 
 ON categories FOR ALL 
 USING (auth.jwt() ->> 'role' = 'service_role')
 WITH CHECK (auth.jwt() ->> 'role' = 'service_role');
 
+DROP POLICY IF EXISTS "Service role full access products" ON products;
 CREATE POLICY "Service role full access products" 
 ON products FOR ALL 
+USING (auth.jwt() ->> 'role' = 'service_role')
+WITH CHECK (auth.jwt() ->> 'role' = 'service_role');
+
+-- Substitutes: Public read access for all substitute links
+DROP POLICY IF EXISTS "Public read substitutes" ON substitutes;
+CREATE POLICY "Public read substitutes" 
+ON substitutes FOR SELECT 
+USING (TRUE);
+
+DROP POLICY IF EXISTS "Service role full access substitutes" ON substitutes;
+CREATE POLICY "Service role full access substitutes" 
+ON substitutes FOR ALL 
 USING (auth.jwt() ->> 'role' = 'service_role')
 WITH CHECK (auth.jwt() ->> 'role' = 'service_role');
 
 -- ============================================================================
 -- 6. Stored Function for Server-Side Trigram Fuzzy Search (RPC)
 -- ============================================================================
+DROP FUNCTION IF EXISTS search_products_fuzzy(TEXT, FLOAT, TEXT, BOOLEAN, NUMERIC, NUMERIC, INT, INT);
 CREATE OR REPLACE FUNCTION search_products_fuzzy(
     search_term TEXT,
     similarity_threshold FLOAT DEFAULT 0.25,

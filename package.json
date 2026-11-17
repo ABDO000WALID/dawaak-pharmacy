@@ -10,7 +10,8 @@
     "lint": "next lint",
     "test": "node tests/runner.js && node tests/challenger-search.test.js && node tests/adversarial-r2-verification.test.js && node tests/test-route-handler-and-search.test.js && node tests/test-url-filters-and-pagination.test.js && node tests/test-creative-innovations.test.js && node tests/test-phase2-search-validation.test.js",
     "test:base": "node tests/runner.js",
-    "test:pg": "node scripts/verify-postgres-full.js"
+    "test:pg": "node scripts/verify-postgres-full.js",
+    "test:migrations": "node scripts/verify-migration-idempotency.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",

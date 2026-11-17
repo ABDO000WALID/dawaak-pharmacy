@@ -144,7 +144,7 @@ async function run() {
     const rlsStatus = await client.query(`
       SELECT tablename, rowsecurity 
       FROM pg_tables 
-      WHERE schemaname = 'public' AND tablename IN ('categories', 'products');
+      WHERE schemaname = 'public' AND tablename IN ('categories', 'products', 'substitutes');
     `);
     for (const row of rlsStatus.rows) {
       console.log(`  ✔ Table ${row.tablename}: rowsecurity = ${row.rowsecurity}`);
@@ -154,7 +154,7 @@ async function run() {
     const policiesRes = await client.query(`
       SELECT policyname, tablename, cmd, roles 
       FROM pg_policies 
-      WHERE schemaname = 'public' AND tablename IN ('categories', 'products');
+      WHERE schemaname = 'public' AND tablename IN ('categories', 'products', 'substitutes');
     `);
     console.log(`  ✔ RLS Policies detected (${policiesRes.rows.length} policies):`);
     for (const p of policiesRes.rows) {

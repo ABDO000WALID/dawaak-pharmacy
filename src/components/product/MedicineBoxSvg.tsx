@@ -88,10 +88,10 @@ export function MedicineBoxSvg({
         <text x="20" y="80" fontFamily="system-ui, sans-serif" fontSize="10" fill="#64748B">
           Excipients q.s. to 1 dose unit.
         </text>
-        {/* Synthetic MOH Registration Badge */}
+        {/* Synthetic Catalog Simulation Badge */}
         <rect x="20" y="96" width="280" height="28" rx="6" fill="#F1F5F9" stroke="#CBD5E1" strokeWidth="1" />
         <text x="30" y="114" fontFamily="system-ui, monospace" fontSize="9" fill="#334155" fontWeight="bold">
-          EGY-EDA-SYN: {product.sku || 'EGY-SYN-001'} | REG: 2026/SYN/104
+          CATALOG-REF: {product.sku || 'EGY-SYN-001'} | SIMULATION-ONLY
         </text>
         {/* Barcode Graphic */}
         <g transform="translate(20, 138)">

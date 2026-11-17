@@ -7,7 +7,7 @@
 [![Zustand](https://img.shields.io/badge/State-Zustand-orange)](https://github.com/pmndrs/zustand)
 [![Tests](https://img.shields.io/badge/Tests-289%2F289%20Passed%20(100%25)-brightgreen)](./tests)
 [![Build](https://img.shields.io/badge/Build-Passing%20(Exit%200)-success)](./)
-[![Egyptian Market](https://img.shields.io/badge/Market-Egypt%20%D9%85%D8%B5%D8%B1-red)](https://edaegypt.gov.eg)
+[![Egyptian Market](https://img.shields.io/badge/Market-Egypt%20%D9%85%D8%B5%D8%B1-teal)](#)
 [![Phase](https://img.shields.io/badge/Phase%202-Catalog%20%26%20Advanced%20Search%20(Ready)-teal)](./)
 
 ---
@@ -181,7 +181,7 @@ npm run lint
    - تصنف الروشتات الطبية وبيانات الأمراض المزمنة وفقاً للمادتين (1) و(12) من قانون حماية البيانات الشخصية المصري كـ **"بيانات شخصية حساسة"**.
    - لا تتطلب المرحلة الأولى أية خوادم سحابية خارجية للتشغيل الأولي، مع تصميم بنية تخزين الروشتات السحابية المستقبلية بنظام الروابط المؤقتة المشفرة مسبقاً (Presigned URLs بمدة صلاحية 15 دقيقة فقط).
 
-4. **الضوابط الصيدلانية المصرية (EDA Pharmacy Safeguards)**:
+4. **الضوابط الصيدلانية الاسترشادية (Pharmacy Dispensing Safeguards)**:
    - تفعيل حد أقصى للطلب بمقدار **5 علب لكل دواء** لمنع ظاهرة احتكار الأدوية وإعادة بيعها في السوق غير الرسمية.
    - وضع علامات تحذيرية صريحة على الأدوية التي تتطلب روشتة طبية (Rx Only) مع منع صرفها الآلي دون فحص صيدلاني مرخص.
 
