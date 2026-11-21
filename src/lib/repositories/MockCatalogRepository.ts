@@ -75,7 +75,7 @@ export const DIALECT_MAP: Record<string, string[]> = {
   'صداع': ['syntraphol-extra-500', 'syntraphol-nile-generic-500', 'vitamol-plus-fast', 'citra-cold-sinus'],
   'سخونية': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'syntraphol-nile-generic-500', 'kids-relief-fever-syrup'],
   'حرارة': ['syntraphol-extra-500', 'pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
-  'مغص': ['egyptocalm-effervescent', 'gastroshield-m-20', 'ombrasynth-local-20', 'ombrasynth-colon-care', 'pediasynth-colic-drops'],
+  'مغص': ['pediasynth-colic-drops', 'egyptocalm-effervescent', 'ombrasynth-colon-care', 'gastroshield-m-20', 'ombrasynth-local-20'],
   'حموضة': ['gastroshield-m-20', 'egyptocalm-effervescent', 'ombrasynth-local-20', 'ombrasynth-colon-care'],
   'فوار': ['egyptocalm-effervescent', 'pulmo-relief-sachets'],
   'كحة': ['pharmacure-dx-syrup', 'pediatric-cough-k-oral', 'bronchosynth-expectorant-syrup', 'pulmo-relief-sachets'],
@@ -103,6 +103,32 @@ export const DIALECT_MAP: Record<string, string[]> = {
   'حب شباب': ['dermoheal-plus-gel'],
   'تسنين': ['teething-care-gel'],
   'حرارة أطفال': ['pediatric-cough-k-oral', 'kids-relief-fever-syrup'],
+};
+
+/**
+ * Common commercial trade names to synthetic catalog equivalents mapping.
+ */
+export const TRADE_NAME_MAP: Record<string, string[]> = {
+  // Panadol / Paracetamol -> Syntraphol Extra (Top Result)
+  'بنادول': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'بانادول': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'باندول': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'بندول': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'panadol': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'باراسيتامول': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+  'paracetamol': ['syntraphol-extra-500', 'syntraphol-nile-generic-500'],
+
+  // Augmentin -> Catalog Antibiotic
+  'أوجمنتين': ['amoxisynth-clav-1000'],
+  'اوجمنتين': ['amoxisynth-clav-1000'],
+  'اوغمنتين': ['amoxisynth-clav-1000'],
+  'augmentin': ['amoxisynth-clav-1000'],
+  'مضاد حيوي': ['amoxisynth-clav-1000'],
+  'antibiotic': ['amoxisynth-clav-1000'],
+
+  // Colic -> PediaSynth Colic Drops (GI/colic)
+  'مغص': ['pediasynth-colic-drops', 'egyptocalm-effervescent', 'ombrasynth-colon-care'],
+  'مغصص': ['pediasynth-colic-drops', 'egyptocalm-effervescent', 'ombrasynth-colon-care'],
 };
 
 export class MockCatalogRepository implements CatalogRepository {
@@ -157,6 +183,30 @@ export class MockCatalogRepository implements CatalogRepository {
       const rawQ = options.search.trim().toLowerCase();
       const normQ = normalizeArabic(options.search);
 
+      // Check Common Trade Names (Panadol, Augmentin, Colic, etc.)
+      const tradeNameScores = new Map<string, number>();
+      for (const [tradeTerm, slugs] of Object.entries(TRADE_NAME_MAP)) {
+        const normTerm = normalizeArabic(tradeTerm);
+        const termTrigramSim = (normQ && normTerm && normQ.length >= 3) ? wordTrigramSimilarity(normQ, normTerm) : 0;
+        const rawTermTrigramSim = (rawQ && tradeTerm && rawQ.length >= 3) ? wordTrigramSimilarity(rawQ, tradeTerm.toLowerCase()) : 0;
+        const isMatch =
+          (normQ && (normQ === normTerm || normQ.includes(normTerm) || (normQ.length >= 3 && normTerm.includes(normQ)))) ||
+          (rawQ && (rawQ === tradeTerm.toLowerCase() || rawQ.includes(tradeTerm.toLowerCase()) || (rawQ.length >= 3 && tradeTerm.toLowerCase().includes(rawQ)))) ||
+          termTrigramSim >= 0.35 ||
+          rawTermTrigramSim >= 0.35;
+
+        if (isMatch) {
+          const listLen = slugs.length || 1;
+          slugs.forEach((slug, rankIdx) => {
+            const dynamicScore = 3.0 - (rankIdx / (listLen + 1)) * 0.5;
+            const prev = tradeNameScores.get(slug) || 0;
+            if (dynamicScore > prev) {
+              tradeNameScores.set(slug, dynamicScore);
+            }
+          });
+        }
+      }
+
       // Check Egyptian dialect symptoms with dynamic multi-factor scoring
       const dialectScores = new Map<string, number>();
       for (const [symptom, slugs] of Object.entries(DIALECT_MAP)) {
@@ -183,7 +233,19 @@ export class MockCatalogRepository implements CatalogRepository {
       }
 
       const scored = result.map(p => {
+        // If query is colic ("مغص" or "مغصص"), strictly exclude muscle relaxants ("relaxogen-forte-relaxant")
+        const isColicQuery = normQ.includes('مغص') || rawQ.includes('colic');
+        if (isColicQuery && p.slug === 'relaxogen-forte-relaxant') {
+          return { product: p, score: 0, matched: false };
+        }
+
         let score = 0;
+        const tradeScore = tradeNameScores.get(p.slug) || 0;
+        const isTradeMatch = tradeScore > 0;
+        if (isTradeMatch) {
+          score += tradeScore;
+        }
+
         const baseDialectScore = dialectScores.get(p.slug);
         const isDialectMatch = baseDialectScore !== undefined;
         if (isDialectMatch) {
@@ -249,12 +311,12 @@ export class MockCatalogRepository implements CatalogRepository {
         const simActiveEn = wordTrigramSimilarity(rawQ, activeEn);
 
         const bestSim = Math.max(simNameAr, simActiveAr, simNameEn, simActiveEn);
-        const simThreshold = (arTokens.length >= 3 || enTokens.length >= 3) ? 0.32 : 0.28;
+        const simThreshold = (arTokens.length >= 3 || enTokens.length >= 3) ? 0.32 : 0.36;
         if (bestSim >= simThreshold) {
           score += bestSim * 0.75;
         }
 
-        return { product: p, score, matched: isDialectMatch || matchesArabic || matchesEnglish || bestSim >= simThreshold };
+        return { product: p, score, matched: isTradeMatch || isDialectMatch || matchesArabic || matchesEnglish || bestSim >= simThreshold };
       });
 
       result = scored

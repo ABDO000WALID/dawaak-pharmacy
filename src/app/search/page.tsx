@@ -113,6 +113,7 @@ function SearchContent() {
   // Fetch products from server route handler with fallback to repository
   useEffect(() => {
     let isCancelled = false;
+    const controller = new AbortController();
     setIsLoading(true);
 
     const filterOptions: ProductFilterOptions = {
@@ -136,7 +137,9 @@ function SearchContent() {
         if (!params.has('page')) params.set('page', String(currentPage));
         if (!params.has('pageSize')) params.set('pageSize', String(currentPageSize));
 
-        const res = await fetch(`/api/products?${params.toString()}`);
+        const res = await fetch(`/api/products?${params.toString()}`, {
+          signal: controller.signal,
+        });
         if (res.ok) {
           const json = await res.json();
           if (!isCancelled && json.success) {
@@ -146,7 +149,8 @@ function SearchContent() {
             return;
           }
         }
-      } catch {
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
         // Fetch failed (e.g. offline, static build), proceed to repository fallback
       }
 
@@ -184,6 +188,7 @@ function SearchContent() {
 
     return () => {
       isCancelled = true;
+      controller.abort();
     };
   }, [
     searchParams,

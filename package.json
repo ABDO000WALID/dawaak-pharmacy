@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node tests/runner.js && node tests/challenger-search.test.js && node tests/adversarial-r2-verification.test.js && node tests/test-route-handler-and-search.test.js && node tests/test-url-filters-and-pagination.test.js && node tests/test-creative-innovations.test.js && node tests/test-phase2-search-validation.test.js",
+    "test": "node tests/runner.js && node tests/challenger-search.test.js && node tests/adversarial-r2-verification.test.js && node tests/test-route-handler-and-search.test.js && node tests/test-url-filters-and-pagination.test.js && node tests/test-creative-innovations.test.js && node tests/test-phase2-search-validation.test.js && node tests/test-milestone1-core-enhancements.test.js && node tests/e2e-requirements.test.js",
     "test:base": "node tests/runner.js",
     "test:pg": "node scripts/verify-postgres-full.js",
     "test:migrations": "node scripts/verify-migration-idempotency.js"

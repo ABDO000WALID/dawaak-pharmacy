@@ -16,7 +16,7 @@ export interface CartStore {
   swapItem: (currentProductId: string, substituteProduct: SyntheticProduct) => void;
   getSubtotal: () => number;
   getDeliveryFee: (freeThreshold?: number, standardFee?: number) => number;
-  getTotal: () => number;
+  getTotal: (customDeliveryFee?: number) => number;
   getItemCount: () => number;
   hasPrescriptionItems: () => boolean;
 }

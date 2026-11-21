@@ -83,9 +83,10 @@ export const useCartStore = create<CartStore>()(
         return subtotal >= freeThreshold ? 0 : standardFee;
       },
 
-      getTotal: () => {
+      getTotal: (customDeliveryFee?: number) => {
         const subtotal = get().getSubtotal();
         if (subtotal === 0) return 0;
+        if (customDeliveryFee !== undefined) return subtotal + customDeliveryFee;
         return subtotal + get().getDeliveryFee();
       },
 

@@ -9,7 +9,7 @@ export const EGYPTIAN_GOVERNORATES: Governorate[] = [
   { id: 'dakahlia', nameAr: 'الدقهلية (المنصورة)', nameEn: 'Dakahlia (Mansoura)', deliveryFeeEgp: 35, deliveryDaysEstimated: 2 },
   { id: 'gharbia', nameAr: 'الغربية (طنطا)', nameEn: 'Gharbia (Tanta)', deliveryFeeEgp: 35, deliveryDaysEstimated: 2 },
   { id: 'beheira', nameAr: 'البحيرة (دمنهور)', nameEn: 'Beheira (Damanhur)', deliveryFeeEgp: 35, deliveryDaysEstimated: 2 },
-  { id: 'menofia', nameAr: 'المنوفية (شبين الكوم)', nameEn: 'Menofia', deliveryFeeEgp: 35, deliveryDaysEstimated: 2 },
+  { id: 'menofia', nameAr: 'المنوفية (شبين الكوم)', nameEn: 'Menofia', deliveryFeeEgp: 30, deliveryDaysEstimated: 2 },
   { id: 'ismailia', nameAr: 'الإسماعيلية', nameEn: 'Ismailia', deliveryFeeEgp: 40, deliveryDaysEstimated: 2 },
   { id: 'suez', nameAr: 'السويس', nameEn: 'Suez', deliveryFeeEgp: 40, deliveryDaysEstimated: 2 },
   { id: 'port-said', nameAr: 'بورسعيد', nameEn: 'Port Said', deliveryFeeEgp: 40, deliveryDaysEstimated: 2 },

@@ -3,20 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 import { useCartStore } from '@/lib/store/useCartStore';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
 import { useThemeStore } from '@/lib/store/useThemeStore';
 import { VoiceSearchModal } from '@/components/home/VoiceSearchModal';
 import { BarcodeScannerModal } from '@/components/search/BarcodeScannerModal';
+import { MyOrdersModal } from '@/components/cart/MyOrdersModal';
 import { ProductService } from '@/lib/services/product-service';
 import { SyntheticProduct } from '@/types/product';
 import { formatEGP } from '@/lib/utils/currency';
-import { Search, ShoppingBag, Moon, Sun, Globe, Mic, X, ScanLine } from 'lucide-react';
+import { Search, ShoppingBag, Moon, Sun, Globe, Mic, X, ScanLine, Package } from 'lucide-react';
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { locale, toggleLocale } = useLocaleStore();
   const { theme, toggleTheme } = useThemeStore();
   const { getItemCount, hasHydrated } = useCartStore();
@@ -30,35 +32,72 @@ export function Header() {
   const [isVoiceOpen, setIsVoiceOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
 
   const desktopContainerRef = useRef<HTMLDivElement>(null);
   const mobileContainerRef = useRef<HTMLDivElement>(null);
+  const isNavigatingRef = useRef(false);
 
   const cartItemCount = hasHydrated ? getItemCount() : 0;
 
-  // 200ms debounce on search keystrokes
+  // 300ms debounce on search keystrokes
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-    }, 200);
+    }, 300);
 
     return () => clearTimeout(handler);
   }, [searchQuery]);
 
-  // Query suggestions when debounced query has >= 1 char
+  // Dismiss search dropdown automatically on route navigation
+  useEffect(() => {
+    setIsDropdownOpen(false);
+    setIsMobileSearchOpen(false);
+    isNavigatingRef.current = false;
+  }, [pathname]);
+
+  // Query suggestions with AbortController to cancel superseded queries
   useEffect(() => {
     const trimmed = debouncedQuery.trim();
-    if (trimmed.length >= 1) {
-      const allMatches = ProductService.getAllProducts({ search: trimmed });
-      setTotalMatchesCount(allMatches.length);
-      setSuggestions(allMatches.slice(0, 6));
-      setIsDropdownOpen(true);
-    } else {
+    if (!trimmed || isNavigatingRef.current || pathname === '/search') {
       setSuggestions([]);
       setTotalMatchesCount(0);
       setIsDropdownOpen(false);
+      return;
     }
-  }, [debouncedQuery]);
+
+    const controller = new AbortController();
+
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(`/api/products?q=${encodeURIComponent(trimmed)}&pageSize=6`, {
+          signal: controller.signal,
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && !controller.signal.aborted) {
+            setSuggestions(json.data);
+            setTotalMatchesCount(json.pagination?.total ?? json.data.length);
+            setIsDropdownOpen(true);
+          }
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          // Fallback to synchronous in-memory search
+          const allMatches = ProductService.getAllProducts({ search: trimmed });
+          setTotalMatchesCount(allMatches.length);
+          setSuggestions(allMatches.slice(0, 6));
+          setIsDropdownOpen(true);
+        }
+      }
+    };
+
+    fetchSuggestions();
+
+    return () => {
+      controller.abort();
+    };
+  }, [debouncedQuery, pathname]);
 
   // Handle outside click and Escape key to close suggestions dropdown
   useEffect(() => {
@@ -90,6 +129,7 @@ export function Header() {
     if (e) e.preventDefault();
     const trimmed = searchQuery.trim();
     if (trimmed) {
+      isNavigatingRef.current = true;
       setIsDropdownOpen(false);
       setIsMobileSearchOpen(false);
       router.push(`/search?q=${encodeURIComponent(trimmed)}`);
@@ -97,6 +137,7 @@ export function Header() {
   };
 
   const handleVoiceSelect = (phrase: string) => {
+    isNavigatingRef.current = true;
     setSearchQuery(phrase);
     setIsDropdownOpen(false);
     setIsMobileSearchOpen(false);
@@ -104,7 +145,7 @@ export function Header() {
   };
 
   const renderDropdown = () => {
-    if (!isDropdownOpen || debouncedQuery.trim().length < 1) return null;
+    if (!isDropdownOpen || debouncedQuery.trim().length < 1 || pathname === '/search') return null;
 
     return (
       <div className="absolute top-full start-0 end-0 mt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200/90 dark:border-slate-800 z-50 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800 animate-in fade-in zoom-in-95 duration-150">
@@ -299,6 +340,18 @@ export function Header() {
               )}
             </button>
 
+            {/* My Orders History Button */}
+            <button
+              id="header-my-orders-button"
+              type="button"
+              onClick={() => setIsOrdersOpen(true)}
+              title={locale === 'ar' ? 'طلباتي السابقة' : 'My Orders'}
+              aria-label={locale === 'ar' ? 'طلباتي السابقة' : 'My Orders'}
+              className="relative p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition active:scale-95 flex items-center justify-center"
+            >
+              <Package className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+            </button>
+
             {/* Cart Counter Button */}
             <Link
               id="header-cart-icon"
@@ -394,6 +447,12 @@ export function Header() {
       <BarcodeScannerModal
         isOpen={isBarcodeOpen}
         onClose={() => setIsBarcodeOpen(false)}
+      />
+
+      {/* My Orders History Modal */}
+      <MyOrdersModal
+        isOpen={isOrdersOpen}
+        onClose={() => setIsOrdersOpen(false)}
       />
     </header>
   );
