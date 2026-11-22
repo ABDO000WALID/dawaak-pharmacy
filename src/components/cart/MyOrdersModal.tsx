@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { Modal } from '@/components/ui/Modal';
 import { useLocaleStore } from '@/lib/store/useLocaleStore';
@@ -13,9 +14,55 @@ interface MyOrdersModalProps {
   onClose: () => void;
 }
 
+const getLocalizedCustomerName = (name: string, locale: string) => {
+  if (name === 'عميل تجريبي' || name === 'Demo Customer') {
+    return locale === 'ar' ? 'عميل تجريبي' : 'Demo Customer';
+  }
+  return name;
+};
+
+const getLocalizedDeliveryEstimate = (order: DawaakOrder, locale: string) => {
+  const isOneDay =
+    order.expectedDeliveryDays === 1 ||
+    order.expectedDeliveryTime?.includes('24') ||
+    order.expectedDeliveryTime?.includes('يوم واحد');
+
+  if (isOneDay) {
+    return locale === 'ar' ? 'خلال 24 ساعة (يوم واحد)' : 'Within 24 hours (1 business day)';
+  }
+
+  const days = order.expectedDeliveryDays || 2;
+  return locale === 'ar' ? `خلال ${days} أيام عمل` : `Within ${days} business days`;
+};
+
+const formatOrderDateTime = (order: DawaakOrder, locale: string) => {
+  if (order.timestamp) {
+    try {
+      const date = new Date(order.timestamp);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString(locale === 'ar' ? 'ar-EG' : 'en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+    } catch {
+      // fallback
+    }
+  }
+  return order.formattedTime || '';
+};
+
 export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
   const { locale } = useLocaleStore();
   const [orders, setOrders] = useState<DawaakOrder[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const loadOrders = () => {
     setOrders(getStoredOrders());
@@ -47,7 +94,9 @@ export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
     }
   };
 
-  return (
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <Modal
       isOpen={isOpen}
       onClose={onClose}
@@ -104,7 +153,7 @@ export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-slate-500 dark:text-slate-400">
                       <Calendar className="w-3.5 h-3.5" />
-                      <span>{order.formattedTime || new Date(order.timestamp).toLocaleDateString()}</span>
+                      <span>{formatOrderDateTime(order, locale)}</span>
                     </div>
                   </div>
 
@@ -113,7 +162,7 @@ export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
                     <Truck className="w-4 h-4 text-teal-600 shrink-0" />
                     <span>
                       <strong>{locale === 'ar' ? 'موعد التوصيل المتوقع: ' : 'Expected Delivery: '}</strong>
-                      {order.expectedDeliveryTime}
+                      {getLocalizedDeliveryEstimate(order, locale)}
                     </span>
                   </div>
 
@@ -121,7 +170,7 @@ export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
                     <div className="flex items-center gap-1.5">
                       <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{order.customerName}</span>
+                      <span>{getLocalizedCustomerName(order.customerName, locale)}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -190,6 +239,7 @@ export function MyOrdersModal({ isOpen, onClose }: MyOrdersModalProps) {
           </>
         )}
       </div>
-    </Modal>
+    </Modal>,
+    document.body
   );
 }

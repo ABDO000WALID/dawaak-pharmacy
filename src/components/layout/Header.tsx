@@ -53,6 +53,7 @@ export function Header() {
   useEffect(() => {
     setIsDropdownOpen(false);
     setIsMobileSearchOpen(false);
+    setSuggestions([]);
     isNavigatingRef.current = false;
   }, [pathname]);
 
@@ -97,7 +98,8 @@ export function Header() {
     return () => {
       controller.abort();
     };
-  }, [debouncedQuery, pathname]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQuery]);
 
   // Handle outside click and Escape key to close suggestions dropdown
   useEffect(() => {
@@ -172,6 +174,7 @@ export function Header() {
                   onClick={() => {
                     setIsDropdownOpen(false);
                     setIsMobileSearchOpen(false);
+                    setSuggestions([]);
                   }}
                   className="flex items-center gap-3 px-3.5 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition group"
                 >
@@ -215,6 +218,7 @@ export function Header() {
               onClick={() => {
                 setIsDropdownOpen(false);
                 setIsMobileSearchOpen(false);
+                setSuggestions([]);
               }}
               className="block text-center py-2.5 px-3 bg-slate-50 hover:bg-teal-50/80 dark:bg-slate-800/50 dark:hover:bg-teal-950/40 text-xs font-bold text-teal-700 dark:text-teal-400 transition font-cairo"
             >

@@ -210,7 +210,7 @@ export function PrescriptionUploadModal({ isOpen, onClose }: PrescriptionUploadM
                 >
                   {EGYPTIAN_GOVERNORATES.map((g) => (
                     <option key={g.id} value={g.id}>
-                      {locale === 'ar' ? g.nameAr : g.nameEn} ({g.deliveryFeeEgp} ج.م)
+                      {locale === 'ar' ? g.nameAr : g.nameEn} ({g.deliveryFeeEgp} {locale === 'ar' ? 'ج.م' : 'EGP'})
                     </option>
                   ))}
                 </select>

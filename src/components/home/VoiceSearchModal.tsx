@@ -26,6 +26,7 @@ export function VoiceSearchModal({
   const [errorType, setErrorType] = useState<'not-allowed' | 'unsupported' | 'error' | null>(null);
 
   const recognitionRef = useRef<any>(null);
+  const hasCapturedRef = useRef(false);
 
   const stopRecognition = useCallback(() => {
     if (recognitionRef.current) {
@@ -43,6 +44,7 @@ export function VoiceSearchModal({
     const cleanText = finalText.trim();
     if (!cleanText) return;
 
+    hasCapturedRef.current = true;
     stopRecognition();
     setIsFinalResult(true);
 
@@ -58,6 +60,7 @@ export function VoiceSearchModal({
   }, [onClose, onSelectPhrase, router, stopRecognition]);
 
   const startListening = useCallback(() => {
+    hasCapturedRef.current = false;
     setErrorType(null);
     setTranscript('');
     setIsFinalResult(false);
@@ -113,9 +116,14 @@ export function VoiceSearchModal({
       };
 
       recognition.onerror = (event: any) => {
+        if (hasCapturedRef.current || event.error === 'aborted' || event.error === 'no-speech') {
+          setIsListening(false);
+          return;
+        }
+
         if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
           setErrorType('not-allowed');
-        } else if (event.error !== 'no-speech') {
+        } else {
           setErrorType('error');
         }
         setIsListening(false);
@@ -157,12 +165,14 @@ export function VoiceSearchModal({
 
   useEffect(() => {
     if (isOpen) {
+      hasCapturedRef.current = false;
       startListening();
     } else {
       stopRecognition();
       setTranscript('');
       setErrorType(null);
       setIsFinalResult(false);
+      hasCapturedRef.current = false;
     }
 
     return () => {
